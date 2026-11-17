@@ -12,10 +12,10 @@ Issues and pull requests are welcome. Keep changes small and covered by tests.
 
 ```
 agents/pi/index.ts            Extension entry point: tool, /todos command, shortcuts, panel, watcher
-src/core/todo.tsTask type and todo.txt line parse/format/validation
-src/core/store.tsSettings, scopes, store paths, project registry, migrate/scope moves
-src/core/util.tsShared helpers: ~ expansion, file lock, JSONL reader
-src/core/tasks.tsActions on the ai-do JSONL todos file (the one store)
+src/core/todo.ts        Task type and todo.txt line parse/format/validation
+src/core/store.ts       Settings, scopes, store paths, project registry, migrate/scope moves
+src/core/util.ts        Shared helpers: ~ expansion, file lock, JSONL reader
+src/core/tasks.ts       Actions on the ai-do JSONL todos file (the one store)
 src/core/ctx.ts         Ctx: host-neutral cwd/trust/session/exec
 src/cli/index.ts        ai-do CLI
 agents/shared/          Shared skills/hooks; agents/<name>/ overrides same paths
