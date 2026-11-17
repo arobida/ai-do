@@ -10,6 +10,9 @@
     "dex",
     "tasks"
   ],
+  "bin": {
+    "ai-do": "./src/cli/index.ts"
+  },
   "files": [
     "src/",
     "agents/",
