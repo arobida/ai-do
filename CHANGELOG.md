@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add `ai-do` CLI (`src/cli`) over the shared core: `list`, `ready`, `create`, `start`, `complete`, `edit`, `import`, `export`, `link`, `scope`, `migrate`. Trusted if `AI_DO_TRUST=1` or the project has an `.ai-do/` folder; otherwise it uses the temp store.
+- Split code into layers: `src/core` (shared, host-free), `src/cli`, `agents/shared` (skill and assets reused by agents), and `agents/<name>` (Pi extension, Claude Code plugin, Codex, opencode and Cursor integrations).
+- Add `bun run build:agent <name>`: writes `dist/<name>/` from `agents/shared/`, then `agents/<name>/` on top, so an agent file at the same path replaces the shared one.
+- Add Claude Code, Codex, opencode and Cursor integrations shipping the `ai-do` skill, which shells out to the CLI.
 - Breaking: rename pi-do to ai-do: package `ai-do`, folders `.ai-do/` and `~/.ai-do/`, env vars `AI_DO_*`, todo.txt tags `aiid:`/`aistart:`/`aidesc:`/`aiparent:`/`airesult:`, `aido://` links. An existing `.pi-do/` or `~/.pi-do/` is still used when the new folder is missing, and import still reads the old `pi*:` tags.
 - Config is now `config.json` (JSONC) with a `$schema` pinned to the installed version (`schema.json`, plus `src/adapters/<name>/<name>.schema.json` per adapter) for editor autocomplete and validation. `config.jsonl` files are converted on first read.
 - Add Things 3 adapter (macOS): each pi-do project syncs with a Things project of the same name; two-way sync of name, notes and completion via the Things URL scheme; `/todos connect things <token>` stores the auth token.

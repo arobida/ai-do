@@ -16,6 +16,7 @@
   "files": [
     "src/",
     "agents/",
+    "scripts/",
     "schema.json",
     "README.md",
     "CHANGELOG.md"

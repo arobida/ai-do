@@ -41,6 +41,28 @@ Until then, install from a local checkout (see [Contributing](CONTRIBUTING.md)).
 
 Current shows tasks worked on in this session. Newly created top-level tasks remain in the project backlog until started. Tasks are stored as JSONL, one JSON object per task: `id`, `name`, `completed`, `started_at`, and optional `priority` (A-Z), `created` and `completed_date` (YYYY-MM-DD), `description`, `parent`, `result` (schema: `Task` in `src/todo.ts`). `+projects`, `@contexts` and other `key:value` tags stay in `name`. Export renders each record as a [todo.txt](https://github.com/todotxt/todo.txt) line, with ai-do fields as `aiid:`, `aistart:`, `aidesc:`, `aiparent:` and `airesult:` tags, so import reads it back. Older `{"todo":"..."}` stores are converted on the next write. Avoid concurrent writers to the same file.
 
+## CLI
+
+```sh
+bun link                 # from a checkout; or: bun add -g ai-do
+ai-do --help
+ai-do create "Write tests" && ai-do list
+```
+
+The CLI runs in the current directory. It is trusted if `AI_DO_TRUST=1` is set or the project has an `.ai-do/` (or `.agents/ai-do/`) folder; otherwise it uses the temp store.
+
+## Supported agents
+
+| Agent | Integration | Install |
+|---|---|---|
+| [Pi](agents/pi/index.ts) | Extension (`package.json` `pi` field) | `pi install ai-do` (see [Installation](#installation)) |
+| [Claude Code](agents/claude-code/README.md) | Plugin with the `ai-do` skill | Build, add the local marketplace, `claude plugin install` |
+| [Codex](agents/codex/README.md) | Skill | Copy to `~/.agents/skills/` |
+| [opencode](agents/opencode/README.md) | Skill | Copy to `.opencode/skills/` or `~/.config/opencode/skills/` |
+| [Cursor](agents/cursor/README.md) | Skill | Copy to `.cursor/skills/` or `~/.cursor/skills/` |
+
+Non-Pi agents need the `ai-do` CLI on PATH. Build a target with `bun run build:agent <name>`, which writes `dist/<name>/`. It copies `agents/shared/` first, then `agents/<name>/` on top, so a file at the same path in `agents/<name>/` replaces the shared one.
+
 ## Storage
 
 | Scope | Todos file |
