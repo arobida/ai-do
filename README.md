@@ -59,7 +59,7 @@ The CLI runs in the current directory. It is trusted if `AI_DO_TRUST=1` is set o
 | Agent | Integration | Install |
 |---|---|---|
 | [Pi](agents/pi/index.ts) | Extension (`package.json` `pi` field) | `pi install ai-do` (see [Installation](#installation)) |
-| [Claude Code](agents/claude-code/README.md) | Plugin with the `ai-do` skill | Build, add the local marketplace, `claude plugin install` |
+| [Claude Code](agents/claude-code/README.md) | Plugin with the `ai-do` skill | `/plugin install ai-do --marketplace arobida/ai-do` (Claude Code 2.1.275+), or `/plugin marketplace add arobida/ai-do` then `/plugin install ai-do@ai-do` |
 | [Codex](agents/codex/README.md) | Skill | Copy to `~/.agents/skills/` |
 | [opencode](agents/opencode/README.md) | Skill | Copy to `.opencode/skills/` or `~/.config/opencode/skills/` |
 | [Cursor](agents/cursor/README.md) | Skill | Copy to `.cursor/skills/` or `~/.cursor/skills/` |
