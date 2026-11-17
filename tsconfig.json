@@ -8,5 +8,5 @@
     "skipLibCheck": true,
     "types": ["bun"]
   },
-  "include": ["src", "agents", "test"]
+  "include": ["src", "agents", "test", "scripts"]
 }

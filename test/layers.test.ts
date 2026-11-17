@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 const ts = (dir: string): string[] => readdirSync(dir).flatMap((n) => { const p = join(dir, n); return statSync(p).isDirectory() ? ts(p) : p.endsWith(".ts") ? [p] : []; });
 const imports = (f: string) => [...readFileSync(f, "utf8").matchAll(/(?:from|import\()\s*["']([^"']+)["']/g)].map((m) => m[1]);
@@ -15,4 +15,19 @@ test("agents never import another agent", () => {
 			const other = /agents\/([^/]+)/.exec(i)?.[1];
 			expect([f, !other || other === a || other === "shared"]).toEqual([f, true]);
 		}
+});
+
+const rel = (f: string) => imports(f).filter((i) => i.startsWith(".")).map((i) => resolve(f, "..", i));
+const dir = (p: string) => resolve(p) + "/";
+
+test("agents never resolve into another agent", () => {
+	for (const a of readdirSync("agents").filter((n) => n !== "shared" && statSync(join("agents", n)).isDirectory()))
+		for (const f of ts(join("agents", a))) for (const t of rel(f)) {
+			const other = /\/agents\/([^/]+)/.exec(t)?.[1];
+			expect([f, !other || other === a || other === "shared"]).toEqual([f, true]);
+		}
+});
+
+test("src/core never resolves into agents or src/cli", () => {
+	for (const f of ts("src/core")) for (const t of rel(f)) expect([f, t.startsWith(dir("agents")) || t.startsWith(dir("src/cli"))]).toEqual([f, false]);
 });
