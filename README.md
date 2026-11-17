@@ -47,6 +47,7 @@ Current shows tasks worked on in this session. Newly created top-level tasks rem
 bun link                 # from a checkout; or: bun add -g ai-do
 ai-do --help
 ai-do create "Write tests" && ai-do list
+ai-do sync               # two-way sync with adapters enabled in config (Dex, Things)
 ```
 
 The CLI runs in the current directory. It is trusted if `AI_DO_TRUST=1` is set or the project has an `.ai-do/` (or `.agents/ai-do/`) folder; otherwise it uses the temp store.

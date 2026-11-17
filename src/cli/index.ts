@@ -6,6 +6,7 @@ import { checkName } from "../core/todo.ts";
 import { home } from "../core/util.ts";
 import { link, migrate, resolveLink, setScope, settings, storeFile } from "../core/store.ts";
 import { runFile } from "../core/tasks.ts";
+import { syncAll } from "../core/adapters/sync-all.ts";
 import type { Ctx } from "../core/ctx.ts";
 
 const usage = `usage: ai-do [--global] [--json] <command>
@@ -14,6 +15,7 @@ const usage = `usage: ai-do [--global] [--json] <command>
   start <id> | complete <id> [--result r]
   edit <id> [--name n] [--description d] [--blocked-by a,b]
   import <file> | export [file]
+  sync                      sync enabled adapters (dex, things)
   link <id> | resolve <url>
   scope project|global | migrate .ai-do|.agents/ai-do
 env: AI_DO_TRUST=1 trusts cwd; AI_DO_SESSION overrides the session id`;
@@ -42,6 +44,12 @@ try {
 	else if (cmd === "resolve") out(resolveLink(need()));
 	else if (cmd === "scope") out(setScope(ctx, need()));
 	else if (cmd === "migrate") out(migrate(ctx, need()));
+	else if (cmd === "sync") {
+		const s = settings(ctx, v.global), res = await syncAll(ctx, s, storeFile(ctx, s));
+		for (const r of res) (r.error ? console.error : out)(r.error ? `${r.name}: sync failed: ${(r.error as Error).message ?? r.error}` : `${r.name}: synced`);
+		if (!res.length) out("no adapters enabled");
+		if (res.some((r) => r.error)) process.exit(1);
+	}
 	else {
 		const opt = (k: string, flag = k) => v[k as "name"] === undefined ? [] : [`--${flag}`, v[k as "name"]!];
 		let args: string[];

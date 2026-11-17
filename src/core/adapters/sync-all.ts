@@ -1,0 +1,14 @@
+import type { Ctx } from "../ctx.ts";
+import type { Settings } from "../store.ts";
+import { dexAdapter } from "./dex/index.ts";
+import { type Adapter, sync } from "./sync.ts";
+import { thingsAdapter } from "./things/index.ts";
+
+// Syncs every adapter with `sync` on, in order. A failing adapter doesn't stop the rest; its error is returned.
+export async function syncAll(ctx: Ctx, s: Settings, file: string, make: Record<string, () => Adapter> = { dex: () => dexAdapter(ctx), things: () => thingsAdapter(ctx, s.name) }): Promise<{ name: string; error?: unknown }[]> {
+	const out: { name: string; error?: unknown }[] = [];
+	for (const name of Object.keys(s.adapters).filter((n) => s.adapters[n].sync)) {
+		try { await sync(file, s.base, make[name]()); out.push({ name }); } catch (error) { out.push({ name, error }); }
+	}
+	return out;
+}

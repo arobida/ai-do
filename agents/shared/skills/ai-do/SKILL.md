@@ -30,7 +30,10 @@ ai-do link a1b2
 ai-do resolve aido://<project-id>/<task-id>   # a link from `ai-do link`
 ai-do scope global
 ai-do migrate .agents/ai-do
+ai-do sync
 ```
+
+If Dex or Things sync is enabled in config, run `ai-do sync` before reading tasks and after finishing work.
 
 ## Rules
 

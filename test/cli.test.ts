@@ -49,3 +49,9 @@ test("untrusted dir writes to the temp store, not cwd", () => {
 	expect(p.exitCode).toBe(0);
 	expect(readdirSync(cwd)).toEqual([]);
 });
+
+test("sync with no adapters enabled", () => {
+	const r = run(mkdtempSync(join(tmpdir(), "ai-do-cli-")), "sync");
+	expect(r.out).toContain("no adapters enabled");
+	expect(r.code).toBe(0);
+});

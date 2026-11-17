@@ -7,9 +7,9 @@ import { checkName, type Task } from "../../src/core/todo.ts";
 import { home } from "../../src/core/util.ts";
 import { link, migrate, resolveLink, setScope, settings, storeFile } from "../../src/core/store.ts";
 import { runFile } from "../../src/core/tasks.ts";
-import { dexAdapter, dexWatchDirs } from "../../src/core/adapters/dex/index.ts";
-import { sync, type Adapter } from "../../src/core/adapters/sync.ts";
-import { saveThingsToken, thingsAdapter } from "../../src/core/adapters/things/index.ts";
+import { dexWatchDirs } from "../../src/core/adapters/dex/index.ts";
+import { syncAll as syncAllCore } from "../../src/core/adapters/sync-all.ts";
+import { saveThingsToken } from "../../src/core/adapters/things/index.ts";
 import type { Ctx } from "../../src/core/ctx.ts";
 
 const toCtx = (pi: ExtensionAPI, ctx: ExtensionContext): Ctx => ({ cwd: ctx.cwd, trusted: () => ctx.isProjectTrusted(), sessionId: () => ctx.sessionManager.getSessionId(), exec: (cmd, args, opts) => pi.exec(cmd, args, opts) });
@@ -42,12 +42,10 @@ export default function taskPanel(pi: ExtensionAPI) {
 	// Adapters with sync on mirror the ai-do store; runs are chained so two syncs never interleave.
 	let syncing: Promise<void> = Promise.resolve();
 	function syncAll(ctx: ExtensionContext, global = false): Promise<void> {
-		const s = settings(toCtx(pi, ctx), global);
-		const make: Record<string, () => Adapter> = { dex: () => dexAdapter(toCtx(pi, ctx)), things: () => thingsAdapter(toCtx(pi, ctx), s.name) };
-		const file = storeFile(toCtx(pi, ctx), s);
-		for (const name of Object.keys(s.adapters).filter((n) => s.adapters[n].sync)) {
-			syncing = syncing.catch(() => {}).then(() => sync(file, s.base, make[name]())).catch((error) => { if (ctx.hasUI) ctx.ui.notify(`Tasks: ${name} sync failed: ${error}`, "error"); });
-		}
+		const s = settings(toCtx(pi, ctx), global), file = storeFile(toCtx(pi, ctx), s);
+		syncing = syncing.catch(() => {}).then(async () => {
+			for (const r of await syncAllCore(toCtx(pi, ctx), s, file)) if (r.error && ctx.hasUI) ctx.ui.notify(`Tasks: ${r.name} sync failed: ${r.error}`, "error");
+		});
 		return syncing;
 	}
 
