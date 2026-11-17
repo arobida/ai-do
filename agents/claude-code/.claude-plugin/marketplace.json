@@ -1,0 +1,8 @@
+{
+  "name": "ai-do",
+  "description": "ai-do task tracking skill for Claude Code.",
+  "owner": { "name": "ai-do" },
+  "plugins": [
+    { "name": "ai-do", "source": "./", "description": "Track multi-step work as tasks with the ai-do CLI." }
+  ]
+}

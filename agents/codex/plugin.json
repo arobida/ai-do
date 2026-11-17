@@ -1,0 +1,7 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ai-do",
+  "version": "0.1.0",
+  "description": "Track multi-step work as tasks with the ai-do CLI",
+  "license": "MIT"
+}

@@ -1,0 +1,29 @@
+# ai-do for Cursor
+
+Cursor reads `SKILL.md` skills from `.cursor/skills/` (project) or `~/.cursor/skills/` (user), so this agent installs the shared skill unchanged.
+
+Requires the `ai-do` CLI on your `PATH`.
+
+## Install
+
+From the ai-do repo:
+
+```sh
+bun run build:agent cursor
+```
+
+Project install (run in your project root):
+
+```sh
+mkdir -p .cursor/skills && cp -R /path/to/ai-do/dist/cursor/skills/ai-do .cursor/skills/
+```
+
+User-wide install:
+
+```sh
+mkdir -p ~/.cursor/skills && cp -R /path/to/ai-do/dist/cursor/skills/ai-do ~/.cursor/skills/
+```
+
+Restart Cursor, then check Customize -> Skills for `ai-do`. You can also run it with `/ai-do` in chat.
+
+Docs: https://cursor.com/docs/context/skills
