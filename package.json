@@ -45,5 +45,19 @@
   "author": {
     "name": "arobida",
     "url": "https://github.com/arobida"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
+    "@earendil-works/pi-tui": {
+      "optional": true
+    },
+    "typebox": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "bun": ">=1.4"
   }
 }

@@ -43,6 +43,8 @@ Current shows tasks worked on in this session. Newly created top-level tasks rem
 
 ## CLI
 
+Requires [Bun](https://bun.sh) (the `ai-do` binary is TypeScript run by Bun; `npx` without Bun will not work).
+
 ```sh
 bun link                 # from a checkout; or: bun add -g ai-do
 ai-do --help
