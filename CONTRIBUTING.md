@@ -1,4 +1,4 @@
-# Contributing to pi-do
+# Contributing to ai-do
 
 Issues and pull requests are welcome. Keep changes small and covered by tests.
 
@@ -15,7 +15,7 @@ src/index.ts            Extension entry point: tool, /todos command, shortcuts, 
 src/todo.ts             Task type and todo.txt line parse/format/validation
 src/store.ts            Settings, scopes, store paths, project registry, migrate/scope moves
 src/util.ts             Shared helpers: ~ expansion, file lock, JSONL reader
-src/tasks.ts            Actions on the pi-do JSONL todos file (the one store)
+src/tasks.ts            Actions on the ai-do JSONL todos file (the one store)
 src/adapters/sync.ts    Adapter interface and 3-way two-way sync engine
 src/adapters/dex/       Dex adapter: CLI calls, Dex-to-Task mapping, watch folders
 src/adapters/things/    Things 3 adapter: URL scheme writes, JXA reads, auth token file
@@ -42,4 +42,4 @@ Note the package has no license yet (see Publishing); contributions land under w
 
 The Pi manifest and `pi-package` keyword are included. Before the first release, confirm npm name availability (or choose a scope), choose a license, add repository metadata, and review the tarball with `bun run pack:check`. Then publish with `bun publish`. Nothing is published automatically.
 
-Release with `bun pm version <patch|minor|major>` then `git push --follow-tags`, before `bun publish`. The version command bumps `package.json` and creates the `v<version>` git tag. Configs point their `$schema` at `https://raw.githubusercontent.com/arobida/pi-do/v<version>/schema.json` (built from `package.json` in `src/store.ts`), so that URL 404s until the tag is pushed.
+Release with `bun pm version <patch|minor|major>` then `git push --follow-tags`, before `bun publish`. The version command bumps `package.json` and creates the `v<version>` git tag. Configs point their `$schema` at `https://raw.githubusercontent.com/arobida/ai-do/v<version>/schema.json` (built from `package.json` in `src/store.ts`), so that URL 404s until the tag is pushed.

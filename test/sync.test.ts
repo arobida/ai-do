@@ -5,7 +5,7 @@ import { sync } from "../src/adapters/sync.ts";
 import { runFile } from "../src/tasks.ts";
 
 const setup = () => {
-	const dir = mkdtempSync(`${tmpdir()}/pi-do-sync-`), remote = new Map<string, any>(); let n = 0, failAt = -1, calls = 0;
+	const dir = mkdtempSync(`${tmpdir()}/ai-do-sync-`), remote = new Map<string, any>(); let n = 0, failAt = -1, calls = 0;
 	const adapter = { name: "fake", list: async () => [...remote.values()].map((t) => ({ ...t })), update: async () => {},
 		create: async (t: any) => { if (++calls === failAt) throw new Error("boom"); const id = `r${n++}`; remote.set(id, { ...t, id }); return id; } };
 	return { dir, file: `${dir}/t.jsonl`, remote, adapter, failOn: (i: number) => { failAt = i; calls = 0; } };
@@ -67,7 +67,7 @@ test("put/import: missing parent rejected, cycle rejected on put", async () => {
 	const { dir, file } = setup();
 	try {
 		await expect(runFile(file, ["put", JSON.stringify({ id: "a", name: "a", completed: false, started_at: null, parent: "nope" })])).rejects.toThrow("Parent task not found");
-		await expect(runFile(file, ["import", "a piparent:nope piid:a"])).rejects.toThrow("Parent task not found");
+		await expect(runFile(file, ["import", "a aiparent:nope aiid:a"])).rejects.toThrow("Parent task not found");
 		await runFile(file, ["put", JSON.stringify({ id: "a", name: "a", completed: false, started_at: null })]);
 		await runFile(file, ["put", JSON.stringify({ id: "b", name: "b", completed: false, started_at: null, parent: "a" })]);
 		await expect(runFile(file, ["put", JSON.stringify({ id: "a", parent: "b" })])).rejects.toThrow("Parent cycle");

@@ -36,7 +36,7 @@ export default function taskPanel(pi: ExtensionAPI) {
 		if (!["list", "ready", "export"].includes(args[0])) await syncAll(ctx, global);
 		return out;
 	}
-	// Adapters with sync on mirror the pi-do store; runs are chained so two syncs never interleave.
+	// Adapters with sync on mirror the ai-do store; runs are chained so two syncs never interleave.
 	let syncing: Promise<void> = Promise.resolve();
 	function syncAll(ctx: ExtensionContext, global = false): Promise<void> {
 		const s = settings(ctx, global);
@@ -146,11 +146,11 @@ export default function taskPanel(pi: ExtensionAPI) {
 		result: Type.Optional(Type.String({ description: "Only with completed: what was done (default: Completed)" })),
 		force: Type.Optional(Type.Boolean({ description: "Override another live session's claim" })),
 	}));
-	tool("todo_link", "Get a Markdown pido:// link to a task, for use in notes or other projects.", Type.Object({ id: Id }));
-	tool("todo_resolve", "Read the task behind a pido:// link, from any project.", Type.Object({ url: Type.String({ description: "A pido://<project-id>/<task-id> link" }) }));
+	tool("todo_link", "Get a Markdown aido:// link to a task, for use in notes or other projects.", Type.Object({ id: Id }));
+	tool("todo_resolve", "Read the task behind a aido:// link, from any project.", Type.Object({ url: Type.String({ description: "A aido://<project-id>/<task-id> link" }) }));
 
 	pi.registerCommand("todos", {
-		description: "Show tasks or move todo.txt: /todos [current|project|completed|export <path>|import <path>|migrate .pi-do|.agents/pi-do|scope project|global|connect things <token>] [--global]", 
+		description: "Show tasks or move todo.txt: /todos [current|project|completed|export <path>|import <path>|migrate .ai-do|.agents/ai-do|scope project|global|connect things <token>] [--global]", 
 		async handler(args, ctx) {
 			try {
 				let want = String(args ?? "").trim();
@@ -158,7 +158,7 @@ export default function taskPanel(pi: ExtensionAPI) {
 				if (global) want = want.slice(0, -9).trim();
 				const conn = want.match(/^connect\s+things\s+(\S+)$/);
 				if (conn) { ctx.ui.notify(saveThingsToken(conn[1]), "info"); await refresh(ctx); return; }
-				const mig = want.match(/^migrate\s+(\.pi-do|\.agents\/pi-do)$/);
+				const mig = want.match(/^migrate\s+(\.ai-do|\.agents\/ai-do)$/);
 				const sc = want.match(/^scope\s+(project|global)$/);
 				if (mig || sc) { ctx.ui.notify(mig ? migrate(ctx, mig[1]) : setScope(ctx, sc![1]), "info"); void watchStore(ctx); await refresh(ctx); return; }
 				const io = want.match(/^(export|import)\s+(.+)$/);

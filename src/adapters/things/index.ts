@@ -4,27 +4,27 @@ import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import type { Task } from "../../todo.ts";
 import type { Adapter } from "../sync.ts";
-import { piDoHome } from "../../store.ts";
+import { aiDoHome } from "../../store.ts";
 
-// The auth token is a secret: kept in ~/.pi-do/adapters/things.json (0600), never in a config.json that may be committed.
-const tokenFile = () => join(piDoHome(), "adapters", "things.json");
+// The auth token is a secret: kept in ~/.ai-do/adapters/things.json (0600), never in a config.json that may be committed.
+const tokenFile = () => join(aiDoHome(), "adapters", "things.json");
 export function saveThingsToken(token: string): string {
 	if (!/^[\w-]+$/.test(token)) throw new Error("Invalid Things auth token");
-	mkdirSync(join(piDoHome(), "adapters"), { recursive: true });
+	mkdirSync(join(aiDoHome(), "adapters"), { recursive: true });
 	writeFileSync(tokenFile(), JSON.stringify({ token }) + "\n", { mode: 0o600 });
 	chmodSync(tokenFile(), 0o600);
 	return `Saved Things auth token to ${tokenFile()}`;
 }
 function token(): string {
-	if (process.env.PI_DO_THINGS_TOKEN) return process.env.PI_DO_THINGS_TOKEN;
+	if (process.env.AI_DO_THINGS_TOKEN) return process.env.AI_DO_THINGS_TOKEN;
 	try { return JSON.parse(readFileSync(tokenFile(), "utf8")).token; }
 	catch { throw new Error("Things auth token missing: run /todos connect things <token>"); }
 }
 
 // Marks a new to-do's notes so the next read can find its Things id (the URL scheme cannot return it to a CLI).
-const marker = /\n*\[pi-do:([\w-]+)\]\s*$/;
+const marker = /\n*\[ai-do:([\w-]+)\]\s*$/;
 // The URL scheme writes but cannot read, so reads go through Things' AppleScript dictionary (JXA).
-// Each pi-do project syncs with the Things project of the same name; the name is passed as argv, never spliced into code.
+// Each ai-do project syncs with the Things project of the same name; the name is passed as argv, never spliced into code.
 const LIST = `function run([name]) { const p = Application("Things3").projects.whose({ name })(); return p.length ? JSON.stringify(p[0].toDos().map(t => ({ id: t.id(), name: t.name(), notes: t.notes(), status: t.status() }))) : "null"; }`;
 
 export function thingsAdapter(pi: ExtensionAPI, project: string): Adapter {
@@ -51,7 +51,7 @@ export function thingsAdapter(pi: ExtensionAPI, project: string): Adapter {
 		async create(task) {
 			const auth = token(); // fail before adding, so a missing token can't leave an unlinked to-do
 			const key = randomUUID();
-			const todo = { title: task.name, notes: `${task.description ?? ""}\n\n[pi-do:${key}]`, completed: task.completed || undefined };
+			const todo = { title: task.name, notes: `${task.description ?? ""}\n\n[ai-do:${key}]`, completed: task.completed || undefined };
 			// A missing project is created together with its first to-do in one json call, so the to-do can't land in the Inbox.
 			if (await read()) await open("add", { list: project, title: todo.title, notes: todo.notes, completed: task.completed ? "true" : undefined });
 			else await open("json", { data: JSON.stringify([{ type: "project", attributes: { title: project, items: [{ type: "to-do", attributes: todo }] } }]) });

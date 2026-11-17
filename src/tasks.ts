@@ -40,7 +40,7 @@ export function findId(items: Task[], ref: string, file: string): string {
 	throw new Error(hits.length ? `Ambiguous task id ${ref}: matches ${hits.map((t) => `${t.id} "${t.name}"`).join(", ")}` : `Task not found: ${ref}`);
 }
 
-// Runs a list/export/import/create/start/complete/edit action against a pi-do JSONL todos file.
+// Runs a list/export/import/create/start/complete/edit action against a ai-do JSONL todos file.
 export function runFile(file: string, args: string[]): string | Promise<string> {
 	const [action, value] = args;
 	if (action !== "list" && action !== "export") mkdirSync(dirname(file), { recursive: true });
@@ -52,8 +52,8 @@ export function runFile(file: string, args: string[]): string | Promise<string> 
 		items = data.split("\n").flatMap((line, index) => {
 			if (!line.trim()) return []; // blank lines (hand edits) are harmless
 			let record: any;
-			try { record = JSON.parse(line); } catch { throw new Error(`Invalid pi-do JSONL record on line ${index + 1}`); }
-			try { return [toTask(record)]; } catch (error: any) { throw new Error(`Invalid pi-do JSONL record on line ${index + 1}: ${error.message}`); }
+			try { record = JSON.parse(line); } catch { throw new Error(`Invalid ai-do JSONL record on line ${index + 1}`); }
+			try { return [toTask(record)]; } catch (error: any) { throw new Error(`Invalid ai-do JSONL record on line ${index + 1}: ${error.message}`); }
 		});
 	} catch (error: any) { if (error.code !== "ENOENT") throw error; }
 	if (action === "export") {
@@ -70,7 +70,7 @@ export function runFile(file: string, args: string[]): string | Promise<string> 
 	const save = () => { const temp = `${file}.${randomUUID()}.tmp`; writeFileSync(temp, items.map((task) => JSON.stringify(clean(task)) + "\n").join(""), { mode: 0o600 }); renameSync(temp, file); };
 	const today = () => new Date().toISOString().slice(0, 10);
 	if (action === "import") {
-		// Each todo.txt line becomes one record; lines whose piid already exists are skipped.
+		// Each todo.txt line becomes one record; lines whose aiid already exists are skipped.
 		const ids = new Set(items.map((item) => item.id));
 		let added = 0, n = 0;
 		for (const line of value.split(/\r?\n/)) {

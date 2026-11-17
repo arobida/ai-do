@@ -8,7 +8,7 @@ import { findId, runFile } from "./tasks.ts";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 // Pinned to this install's version so editors validate against the options it actually supports; tag v<version> on release.
-export const schemaUrl = `https://raw.githubusercontent.com/arobida/pi-do/v${version}/schema.json`;
+export const schemaUrl = `https://raw.githubusercontent.com/arobida/ai-do/v${version}/schema.json`;
 
 // JSONC: drops comments, then trailing commas (second pass catches a comma that sat before a comment); strings are kept as-is.
 const stripJsonc = (t: string) => t.replace(/("(?:\\.|[^"\\])*")|\/\/[^\n]*|\/\*[\s\S]*?\*\/|,(\s*[}\]])/g, (_m, str, close) => str ?? close ?? "");
@@ -51,16 +51,18 @@ function addId(dir: string, id: string) {
 	writeFileSync(path, text.replace(/^(\s*(?:\/\/[^\n]*\n\s*|\/\*[\s\S]*?\*\/\s*)*)\{/, `$1{\n  "id": ${JSON.stringify(id)}${comma}`));
 }
 
-// One line of ~/.pi-do/projects/projects.jsonl.
+// One line of ~/.ai-do/projects/projects.jsonl.
 export interface Project { id: string; name: string; path: string; scope: string; created: string }
 const toProject = (r: Record<string, unknown>): Project => {
 	for (const k of ["id", "name", "path", "scope", "created"]) if (typeof r[k] !== "string") throw new Error(`bad ${k}`);
 	return r as unknown as Project;
 };
 
-export const piDoHome = () => process.env.PI_DO_HOME || join(homedir(), ".pi-do");
+// Falls back to the old .pi-do folder when only that exists, so existing stores keep working.
+const withLegacy = (dir: string) => existsSync(dir) || !existsSync(dir.replace(/\.ai-do$/, ".pi-do")) ? dir : dir.replace(/\.ai-do$/, ".pi-do");
+export const aiDoHome = () => process.env.AI_DO_HOME || withLegacy(join(homedir(), ".ai-do"));
 
-const registryFile = () => join(piDoHome(), "projects", "projects.jsonl");
+const registryFile = () => join(aiDoHome(), "projects", "projects.jsonl");
 function saveRegistry(projects: Project[]) {
 	const temp = `${registryFile()}.${randomUUID()}.tmp`;
 	writeFileSync(temp, projects.map((p) => JSON.stringify(p) + "\n").join("")); renameSync(temp, registryFile());
@@ -68,44 +70,44 @@ function saveRegistry(projects: Project[]) {
 
 export interface Settings { adapters: Record<string, { sync?: boolean }>; file?: string; scope: string; base: string; local: string; name: string; id: string; registered: boolean }
 
-export const localDir = (cwd: string) => join(cwd, existsSync(join(cwd, ".agents", "pi-do")) ? ".agents/pi-do" : ".pi-do");
-export const globalDir = (s: { name: string; id: string }) => join(piDoHome(), "projects", `${s.name}.${s.id}`);
+export const localDir = (cwd: string) => existsSync(join(cwd, ".agents", "ai-do")) ? join(cwd, ".agents/ai-do") : withLegacy(join(cwd, ".ai-do"));
+export const globalDir = (s: { name: string; id: string }) => join(aiDoHome(), "projects", `${s.name}.${s.id}`);
 
 // The project's id lives in its local config.json (kept in place across scopes) and keys its projects.jsonl record.
-// Scope: env PI_DO_SCOPE > the project's record scope > global config.json > "project".
+// Scope: env AI_DO_SCOPE > the project's record scope > global config.json > "project".
 export function settings(ctx: ExtensionContext, forceGlobal = false): Settings {
-	const root = piDoHome(), cwd = resolve(ctx.cwd), trusted = ctx.isProjectTrusted();
+	const root = aiDoHome(), cwd = resolve(ctx.cwd), trusted = ctx.isProjectTrusted();
 	if (forceGlobal && !trusted) throw new Error("--global requires a trusted project");
 	const local = localDir(cwd);
 	const id: string = (trusted ? readConfig(local).id : undefined) ?? randomUUID();
 	const record = readJsonl(join(root, "projects", "projects.jsonl"), toProject).find((p) => p.id === id);
 	const globalConfig = readConfig(root);
-	const scope = forceGlobal ? "global" : process.env.PI_DO_SCOPE || record?.scope || globalConfig.scope || "project";
-	if (!["project", "global", "temp"].includes(scope)) throw new Error(`Invalid pi-do scope: ${scope}`);
+	const scope = forceGlobal ? "global" : process.env.AI_DO_SCOPE || record?.scope || globalConfig.scope || "project";
+	if (!["project", "global", "temp"].includes(scope)) throw new Error(`Invalid ai-do scope: ${scope}`);
 	const name = record?.name ?? basename(cwd);
-	// Untrusted projects keep the temporary session file so pi-do never writes into them.
+	// Untrusted projects keep the temporary session file so ai-do never writes into them.
 	const temp = !trusted && !forceGlobal || scope === "temp";
 	// Temp stores use the same layout as project stores, in a per-session folder.
-	const base = temp ? join(tmpdir(), "pi-do", createHash("sha256").update(ctx.sessionManager.getSessionId()).digest("hex"), ".pi-do") : scope === "global" ? globalDir({ name, id }) : local;
+	const base = temp ? join(tmpdir(), "ai-do", createHash("sha256").update(ctx.sessionManager.getSessionId()).digest("hex"), ".ai-do") : scope === "global" ? globalDir({ name, id }) : local;
 	const config = { ...globalConfig, ...(base ? readConfig(base) : {}) };
-	return { adapters: config.adapters ?? {}, file: process.env.PI_DO_FILE || config.file, scope: temp ? "temp" : scope, base, local, name, id, registered: !!record };
+	return { adapters: config.adapters ?? {}, file: process.env.AI_DO_FILE || config.file, scope: temp ? "temp" : scope, base, local, name, id, registered: !!record };
 }
 
 export const helloWorld = () => JSON.stringify({ id: randomUUID(), name: "Hello World", completed: false, created: new Date().toISOString().slice(0, 10), started_at: null }) + "\n";
 
-// Resolves the todos file, creating the pi-do folder, config, list index, project registration and Hello World todo on first use.
+// Resolves the todos file, creating the ai-do folder, config, list index, project registration and Hello World todo on first use.
 export function storeFile(ctx: ExtensionContext, s: Settings): string {
-	// ~/.pi-do always exists: global config plus the projects registry. Its absence means this run is the installation.
-	const installing = !existsSync(join(piDoHome(), "config.json"));
-	mkdirSync(join(piDoHome(), "projects"), { recursive: true });
-	ensureConfig(piDoHome());
-	if (!existsSync(join(piDoHome(), "projects", "projects.jsonl"))) writeFileSync(join(piDoHome(), "projects", "projects.jsonl"), "");
+	// ~/.ai-do always exists: global config plus the projects registry. Its absence means this run is the installation.
+	const installing = !existsSync(join(aiDoHome(), "config.json"));
+	mkdirSync(join(aiDoHome(), "projects"), { recursive: true });
+	ensureConfig(aiDoHome());
+	if (!existsSync(join(aiDoHome(), "projects", "projects.jsonl"))) writeFileSync(join(aiDoHome(), "projects", "projects.jsonl"), "");
 	if (s.file) return resolve(ctx.cwd, home(s.file));
 	const todos = join(s.base, "todos"), file = join(todos, `${s.name}.todos.jsonl`);
 	// Temp stores never write into the project or the registry.
 	if (s.scope !== "temp" && !readConfig(s.local).id) { mkdirSync(s.local, { recursive: true }); addId(s.local, s.id); }
 	if (!s.registered && s.scope !== "temp") {
-		appendFileSync(join(piDoHome(), "projects", "projects.jsonl"), JSON.stringify({ id: s.id, name: s.name, path: resolve(ctx.cwd), scope: s.scope, created: new Date().toISOString() }) + "\n");
+		appendFileSync(join(aiDoHome(), "projects", "projects.jsonl"), JSON.stringify({ id: s.id, name: s.name, path: resolve(ctx.cwd), scope: s.scope, created: new Date().toISOString() }) + "\n");
 		s.registered = true;
 	} else if (s.scope !== "temp") {
 		// Last opened wins: a moved project re-registers its new path.
@@ -123,11 +125,11 @@ export function storeFile(ctx: ExtensionContext, s: Settings): string {
 	return file;
 }
 
-// Moves the project store between .pi-do and .agents/pi-do (todos, config, list index); never overwrites.
+// Moves the project store between .ai-do and .agents/ai-do (todos, config, list index); never overwrites.
 export function migrate(ctx: ExtensionContext, target: string): string {
 	if (!ctx.isProjectTrusted()) throw new Error("migrate requires a trusted project");
 	const s = settings(ctx);
-	if (s.scope !== "project" || s.file) throw new Error("migrate only moves a project-scope pi-do folder; use /todos scope to change scope");
+	if (s.scope !== "project" || s.file) throw new Error("migrate only moves a project-scope ai-do folder; use /todos scope to change scope");
 	const to = join(resolve(ctx.cwd), target);
 	if (to === s.base) throw new Error(`Already stored in ${to}`);
 	if (existsSync(to)) throw new Error(`${to} already exists`);
@@ -139,7 +141,7 @@ export function migrate(ctx: ExtensionContext, target: string): string {
 // Switches scope and moves the todos folder with it; the local config.json (holding the project id) stays put.
 export function setScope(ctx: ExtensionContext, scope: string): string {
 	if (!ctx.isProjectTrusted()) throw new Error("scope requires a trusted project");
-	const s = settings(ctx), registry = join(piDoHome(), "projects", "projects.jsonl");
+	const s = settings(ctx), registry = join(aiDoHome(), "projects", "projects.jsonl");
 	if (s.file) throw new Error("scope does not apply to an explicit file");
 	storeFile(ctx, s); // registers the project and writes its id if needed
 	const projects = readJsonl(registry, toProject);
@@ -162,18 +164,18 @@ const findTask = (file: string, id: string): any => {
 	return items.find((t: any) => t.id === findId(items, id, file));
 };
 
-// `[name](pido://<project-id>/<task-id>)`; only registered stores can be resolved later.
+// `[name](aido://<project-id>/<task-id>)`; only registered stores can be resolved later.
 export function link(ctx: ExtensionContext, id: string): string {
 	const s = settings(ctx);
 	if (s.scope === "temp" || s.file) throw new Error(`Cannot link: ${s.file ? "explicit-file" : "temp-scope"} stores are not registered, so the link could never be resolved`);
 	const t = findTask(storeFile(ctx, s), id);
-	return `[${t.name}](pido://${s.id}/${t.id})`;
+	return `[${t.name}](aido://${s.id}/${t.id})`;
 }
 
 // Looks the project up in the registry and reads its store; never a stale copy at an old path.
 export function resolveLink(url: string): string {
-	const m = url.match(/^pido:\/\/([\w-]+)\/([\w-]+)$/);
-	if (!m) throw new Error(`Invalid pido URL: ${url}`);
+	const m = url.match(/^(?:ai|pi)do:\/\/([\w-]+)\/([\w-]+)$/);
+	if (!m) throw new Error(`Invalid aido URL: ${url}`);
 	const p = readJsonl(registryFile(), toProject).find((r) => r.id === m[1]);
 	if (!p) throw new Error(`Unknown project: ${m[1]}`);
 	const local = localDir(p.path);

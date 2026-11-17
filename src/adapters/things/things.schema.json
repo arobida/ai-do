@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "pi-do Things adapter",
+  "title": "ai-do Things adapter",
   "type": "object",
   "additionalProperties": false,
   "properties": {

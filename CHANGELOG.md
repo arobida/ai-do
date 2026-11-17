@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Breaking: rename pi-do to ai-do: package `ai-do`, folders `.ai-do/` and `~/.ai-do/`, env vars `AI_DO_*`, todo.txt tags `aiid:`/`aistart:`/`aidesc:`/`aiparent:`/`airesult:`, `aido://` links. An existing `.pi-do/` or `~/.pi-do/` is still used when the new folder is missing, and import still reads the old `pi*:` tags.
 - Config is now `config.json` (JSONC) with a `$schema` pinned to the installed version (`schema.json`, plus `src/adapters/<name>/<name>.schema.json` per adapter) for editor autocomplete and validation. `config.jsonl` files are converted on first read.
 - Add Things 3 adapter (macOS): each pi-do project syncs with a Things project of the same name; two-way sync of name, notes and completion via the Things URL scheme; `/todos connect things <token>` stores the auth token.
 - Replace backends with adapters: the pi-do file store always holds tasks; Dex becomes an adapter with two-way `sync` (`"adapters": {"dex": {"sync": true}}`). `backend` config and `PI_DO_BACKEND` are removed.

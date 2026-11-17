@@ -1,6 +1,6 @@
 # Things 3 adapter
 
-Syncs pi-do's todo store with [Things 3](https://culturedcode.com/things/) on macOS. Writes use the [Things URL scheme](https://culturedcode.com/things/support/articles/2803573/); reads use Things' AppleScript dictionary through `osascript`, because the URL scheme cannot read tasks.
+Syncs ai-do's todo store with [Things 3](https://culturedcode.com/things/) on macOS. Writes use the [Things URL scheme](https://culturedcode.com/things/support/articles/2803573/); reads use Things' AppleScript dictionary through `osascript`, because the URL scheme cannot read tasks.
 
 ## Connect
 
@@ -10,40 +10,40 @@ Syncs pi-do's todo store with [Things 3](https://culturedcode.com/things/) on ma
    ```
    /todos connect things <token>
    ```
-   It is written to `~/.pi-do/adapters/things.json` with `0600` permissions, never to a `config.json` (which may be committed). `PI_DO_THINGS_TOKEN` overrides the file.
-4. Turn sync on in a pi-do `config.json` (global `~/.pi-do/config.json` or the project's):
+   It is written to `~/.ai-do/adapters/things.json` with `0600` permissions, never to a `config.json` (which may be committed). `AI_DO_THINGS_TOKEN` overrides the file.
+4. Turn sync on in a ai-do `config.json` (global `~/.ai-do/config.json` or the project's):
    ```json
    {"adapters": {"things": {"sync": true}}}
    ```
 5. Run `/reload` in Pi. On the first read, macOS asks to let Pi's terminal control Things 3 (System Settings → Privacy & Security → Automation); allow it.
 
-To disconnect, set `"sync": false` or remove the entry, and delete `~/.pi-do/adapters/things.json`. Tasks already synced stay on both sides.
+To disconnect, set `"sync": false` or remove the entry, and delete `~/.ai-do/adapters/things.json`. Tasks already synced stay on both sides.
 
 ## Projects
 
-Each pi-do project syncs with the Things project of the same name (the project folder's name, or its name in `~/.pi-do/projects/projects.jsonl`). pi-do creates the Things project with the first new task. Only to-dos in that project sync; to-dos you move out of it stop syncing.
+Each ai-do project syncs with the Things project of the same name (the project folder's name, or its name in `~/.ai-do/projects/projects.jsonl`). ai-do creates the Things project with the first new task. Only to-dos in that project sync; to-dos you move out of it stop syncing.
 
 ## Capabilities
 
-| Field | pi-do → Things | Things → pi-do |
+| Field | ai-do → Things | Things → ai-do |
 |---|---|---|
 | Create to-do | yes | yes |
 | Name → title (todo.txt priority, `+project`, `@context` stay as text) | yes | yes |
 | Description → notes | yes | yes |
 | Completed (and un-completed) | yes | yes |
 
-- Two-way, using the same rules as every adapter: each list or change in pi-do syncs both ways; per field, a change on one side since the last sync is copied across, and if both changed, pi-do wins.
-- Changes made in Things are pulled on the next pi-do action and before each prompt.
+- Two-way, using the same rules as every adapter: each list or change in ai-do syncs both ways; per field, a change on one side since the last sync is copied across, and if both changed, ai-do wins.
+- Changes made in Things are pulled on the next ai-do action and before each prompt.
 - State: links and last-synced copies live in `sync/things.jsonl` next to the store's `config.json`.
 
 ## Limitations
 
 - macOS only.
 - Canceled to-dos are skipped.
-- Renaming either project breaks the match; pi-do then creates a new Things project.
+- Renaming either project breaks the match; ai-do then creates a new Things project.
 - Not synced: started time, result, parent/subtasks (Things has projects, headings and checklists rather than subtasks), and Things' when/deadline, tags, areas, projects, headings and checklists.
 - Deletions are never propagated in either direction.
-- The URL scheme does not return the new to-do's id to a command-line caller. pi-do tags the notes with a temporary `[pi-do:<id>]` marker, waits up to about 5 seconds to find the to-do, then removes the marker. If Things is slower than that, the sync fails and is retried; the retry can create a duplicate.
+- The URL scheme does not return the new to-do's id to a command-line caller. ai-do tags the notes with a temporary `[ai-do:<id>]` marker, waits up to about 5 seconds to find the to-do, then removes the marker. If Things is slower than that, the sync fails and is retried; the retry can create a duplicate.
 - Adding uses `open -g` so Things stays in the background, but macOS may still launch it.
 - No live updates: Things has no folder to watch.
 - Sync failures show as a notice and do not block the local change.

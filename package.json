@@ -1,5 +1,5 @@
 {
-  "name": "pi-do",
+  "name": "ai-do",
   "version": "0.1.0",
   "description": "Standalone task panel and task tools for Pi, with optional Dex integration.",
   "type": "module",
