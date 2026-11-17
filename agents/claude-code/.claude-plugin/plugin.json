@@ -2,5 +2,9 @@
   "name": "ai-do",
   "version": "0.1.0",
   "description": "Track multi-step work as tasks with the ai-do CLI (skill for Claude Code).",
-  "license": "MIT"
+  "license": "MIT",
+  "author": {
+    "name": "arobida",
+    "url": "https://github.com/arobida"
+  }
 }
