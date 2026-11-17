@@ -1,4 +1,4 @@
-import { type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { Ctx } from "../../ctx.ts";
 import { existsSync, mkdirSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -27,22 +27,22 @@ function configured(cwd: string): boolean {
 	return existsSync(join(process.env.XDG_CONFIG_HOME || join(homedir(), ".config"), "dex", "dex.toml"));
 }
 
-function storageArgs(ctx: ExtensionContext): string[] {
+function storageArgs(ctx: Ctx): string[] {
 	if (configured(ctx.cwd)) return [];
-	const id = createHash("sha256").update(ctx.sessionManager.getSessionId()).digest("hex");
+	const id = createHash("sha256").update(ctx.sessionId()).digest("hex");
 	return ["--storage-path", join(tmpdir(), "pi-dex", id)];
 }
 
-async function dex(pi: ExtensionAPI, ctx: ExtensionContext, args: string[], signal?: AbortSignal): Promise<string> {
-	const result = await pi.exec("dex", [...storageArgs(ctx), ...args], { cwd: ctx.cwd, signal });
+async function dex(ctx: Ctx, args: string[], signal?: AbortSignal): Promise<string> {
+	const result = await ctx.exec("dex", [...storageArgs(ctx), ...args], { cwd: ctx.cwd, signal });
 	if (result.code !== 0) throw new Error(result.stderr || result.stdout || `dex exited ${result.code}`);
 	return result.stdout;
 }
 
 const fromDex = (t: any): Task => { checkDex(t); return { id: t.id, name: t.name, completed: t.completed, started_at: t.started_at ?? null, description: t.description ?? undefined, parent: t.parent_id ?? undefined, result: t.result ?? undefined }; };
 
-export function dexAdapter(pi: ExtensionAPI, ctx: ExtensionContext): Adapter {
-	const run = (args: string[]) => dex(pi, ctx, args);
+export function dexAdapter(ctx: Ctx): Adapter {
+	const run = (args: string[]) => dex(ctx, args);
 	return {
 		name: "dex",
 		async list() {
@@ -67,16 +67,16 @@ export function dexAdapter(pi: ExtensionAPI, ctx: ExtensionContext): Adapter {
 }
 
 // Folders holding Dex's task storage, or undefined when the engine has nothing local to watch.
-export async function dexWatchDirs(pi: ExtensionAPI, ctx: ExtensionContext): Promise<string[] | undefined> {
+export async function dexWatchDirs(ctx: Ctx): Promise<string[] | undefined> {
 	const custom = storageArgs(ctx)[1];
 	if (custom) { mkdirSync(custom, { recursive: true }); return [custom]; }
 	// Ask Dex for its effective config: `dex dir` ignores storage.file.path and centralized mode.
-	const get = async (key: string) => { const v = (await pi.exec("dex", ["config", key], { cwd: ctx.cwd })).stdout.trim(); return v && v !== "(not set)" ? v : undefined; };
+	const get = async (key: string) => { const v = (await ctx.exec("dex", ["config", key], { cwd: ctx.cwd })).stdout.trim(); return v && v !== "(not set)" ? v : undefined; };
 	const engine = await get("storage.engine");
 	if (engine && engine !== "file") return; // non-file engines have nothing local to watch; panel keeps its event-based reloads
 	const path = await get("storage.file.path");
 	if (path) return [resolve(ctx.cwd, home(path))];
 	// shortcut: watches every project's centralized store (slug comes from the git remote), so other projects' edits also trigger a reload.
 	if ((await get("storage.file.mode")) === "centralized") return [join(process.env.XDG_CONFIG_HOME || join(homedir(), ".config"), "dex", "projects")];
-	return [(await pi.exec("dex", ["dir"], { cwd: ctx.cwd })).stdout.trim()];
+	return [(await ctx.exec("dex", ["dir"], { cwd: ctx.cwd })).stdout.trim()];
 }

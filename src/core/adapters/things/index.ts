@@ -1,4 +1,4 @@
-import { type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { Ctx } from "../../ctx.ts";
 import { chmodSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -27,15 +27,15 @@ const marker = /\n*\[ai-do:([\w-]+)\]\s*$/;
 // Each ai-do project syncs with the Things project of the same name; the name is passed as argv, never spliced into code.
 const LIST = `function run([name]) { const p = Application("Things3").projects.whose({ name })(); return p.length ? JSON.stringify(p[0].toDos().map(t => ({ id: t.id(), name: t.name(), notes: t.notes(), status: t.status() }))) : "null"; }`;
 
-export function thingsAdapter(pi: ExtensionAPI, project: string): Adapter {
+export function thingsAdapter(ctx: Ctx, project: string): Adapter {
 	if (process.platform !== "darwin") throw new Error("Things adapter needs macOS");
 	const open = async (command: string, params: Record<string, string | undefined>) => {
 		const query = Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => `${k}=${encodeURIComponent(v!)}`).join("&");
-		const r = await pi.exec("open", ["-g", `things:///${command}?${query}`]);
+		const r = await ctx.exec("open", ["-g", `things:///${command}?${query}`]);
 		if (r.code !== 0) throw new Error(r.stderr || `open exited ${r.code}`);
 	};
 	const read = async () => {
-		const r = await pi.exec("osascript", ["-l", "JavaScript", "-e", LIST, project]);
+		const r = await ctx.exec("osascript", ["-l", "JavaScript", "-e", LIST, project]);
 		if (r.code !== 0) throw new Error(r.stderr || `osascript exited ${r.code}`);
 		const data = JSON.parse(r.stdout);
 		if (data === null) return null; // project not created yet

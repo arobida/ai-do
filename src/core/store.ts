@@ -1,4 +1,4 @@
-import { type ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { Ctx } from "./ctx.ts";
 import { appendFileSync, cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
@@ -6,7 +6,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { home, readJsonl } from "./util.ts";
 import { findId, runFile } from "./tasks.ts";
 
-const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+const { version } = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
 // Pinned to this install's version so editors validate against the options it actually supports; tag v<version> on release.
 export const schemaUrl = `https://raw.githubusercontent.com/arobida/ai-do/v${version}/schema.json`;
 
@@ -75,8 +75,8 @@ export const globalDir = (s: { name: string; id: string }) => join(aiDoHome(), "
 
 // The project's id lives in its local config.json (kept in place across scopes) and keys its projects.jsonl record.
 // Scope: env AI_DO_SCOPE > the project's record scope > global config.json > "project".
-export function settings(ctx: ExtensionContext, forceGlobal = false): Settings {
-	const root = aiDoHome(), cwd = resolve(ctx.cwd), trusted = ctx.isProjectTrusted();
+export function settings(ctx: Ctx, forceGlobal = false): Settings {
+	const root = aiDoHome(), cwd = resolve(ctx.cwd), trusted = ctx.trusted();
 	if (forceGlobal && !trusted) throw new Error("--global requires a trusted project");
 	const local = localDir(cwd);
 	const id: string = (trusted ? readConfig(local).id : undefined) ?? randomUUID();
@@ -88,7 +88,7 @@ export function settings(ctx: ExtensionContext, forceGlobal = false): Settings {
 	// Untrusted projects keep the temporary session file so ai-do never writes into them.
 	const temp = !trusted && !forceGlobal || scope === "temp";
 	// Temp stores use the same layout as project stores, in a per-session folder.
-	const base = temp ? join(tmpdir(), "ai-do", createHash("sha256").update(ctx.sessionManager.getSessionId()).digest("hex"), ".ai-do") : scope === "global" ? globalDir({ name, id }) : local;
+	const base = temp ? join(tmpdir(), "ai-do", createHash("sha256").update(ctx.sessionId()).digest("hex"), ".ai-do") : scope === "global" ? globalDir({ name, id }) : local;
 	const config = { ...globalConfig, ...(base ? readConfig(base) : {}) };
 	return { adapters: config.adapters ?? {}, file: process.env.AI_DO_FILE || config.file, scope: temp ? "temp" : scope, base, local, name, id, registered: !!record };
 }
@@ -96,7 +96,7 @@ export function settings(ctx: ExtensionContext, forceGlobal = false): Settings {
 export const helloWorld = () => JSON.stringify({ id: randomUUID(), name: "Hello World", completed: false, created: new Date().toISOString().slice(0, 10), started_at: null }) + "\n";
 
 // Resolves the todos file, creating the ai-do folder, config, list index, project registration and Hello World todo on first use.
-export function storeFile(ctx: ExtensionContext, s: Settings): string {
+export function storeFile(ctx: Ctx, s: Settings): string {
 	// ~/.ai-do always exists: global config plus the projects registry. Its absence means this run is the installation.
 	const installing = !existsSync(join(aiDoHome(), "config.json"));
 	mkdirSync(join(aiDoHome(), "projects"), { recursive: true });
@@ -126,8 +126,8 @@ export function storeFile(ctx: ExtensionContext, s: Settings): string {
 }
 
 // Moves the project store between .ai-do and .agents/ai-do (todos, config, list index); never overwrites.
-export function migrate(ctx: ExtensionContext, target: string): string {
-	if (!ctx.isProjectTrusted()) throw new Error("migrate requires a trusted project");
+export function migrate(ctx: Ctx, target: string): string {
+	if (!ctx.trusted()) throw new Error("migrate requires a trusted project");
 	const s = settings(ctx);
 	if (s.scope !== "project" || s.file) throw new Error("migrate only moves a project-scope ai-do folder; use /todos scope to change scope");
 	const to = join(resolve(ctx.cwd), target);
@@ -139,8 +139,8 @@ export function migrate(ctx: ExtensionContext, target: string): string {
 }
 
 // Switches scope and moves the todos folder with it; the local config.json (holding the project id) stays put.
-export function setScope(ctx: ExtensionContext, scope: string): string {
-	if (!ctx.isProjectTrusted()) throw new Error("scope requires a trusted project");
+export function setScope(ctx: Ctx, scope: string): string {
+	if (!ctx.trusted()) throw new Error("scope requires a trusted project");
 	const s = settings(ctx), registry = join(aiDoHome(), "projects", "projects.jsonl");
 	if (s.file) throw new Error("scope does not apply to an explicit file");
 	storeFile(ctx, s); // registers the project and writes its id if needed
@@ -165,7 +165,7 @@ const findTask = (file: string, id: string): any => {
 };
 
 // `[name](aido://<project-id>/<task-id>)`; only registered stores can be resolved later.
-export function link(ctx: ExtensionContext, id: string): string {
+export function link(ctx: Ctx, id: string): string {
 	const s = settings(ctx);
 	if (s.scope === "temp" || s.file) throw new Error(`Cannot link: ${s.file ? "explicit-file" : "temp-scope"} stores are not registered, so the link could never be resolved`);
 	const t = findTask(storeFile(ctx, s), id);

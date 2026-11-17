@@ -2,8 +2,8 @@ import { expect, mock, test } from "bun:test";
 import { mkdtempSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { withLock } from "../src/util.ts";
-import { parseTodo, todoLine, type Task } from "../src/todo.ts";
+import { withLock } from "../src/core/util.ts";
+import { parseTodo, todoLine, type Task } from "../src/core/todo.ts";
 
 const base = { id: "T1", started_at: null } as const;
 const cases: [string, Partial<Task>][] = [
@@ -33,7 +33,7 @@ test("names that would read back as markers without a created date are refused",
 });
 
 test("readJsonl drops only an unterminated torn last line", async () => {
-	const { readJsonl } = await import("../src/util.ts");
+	const { readJsonl } = await import("../src/core/util.ts");
 	const { mkdtempSync, writeFileSync } = await import("node:fs");
 	const dir = mkdtempSync(`${require("node:os").tmpdir()}/aido-`);
 	writeFileSync(`${dir}/torn.jsonl`, '{"a":1}\n{"b":');
@@ -89,14 +89,14 @@ test("takeover restores a lock a new holder took mid-rename and does not run fn"
 	let armed = true;
 	// a new live holder replaces the dead lock just before the waiter's rename
 	mock.module("node:fs", () => ({ ...real, renameSync: (from: string, to: string) => { if (armed) { armed = false; write(lock, `${process.pid}:new`); } return renameSync(from, to); } }));
-	const { withLock: locked } = await import("../src/util.ts" + "?restore");
+	const { withLock: locked } = await import("../src/core/util.ts" + "?restore");
 	let ran = false;
 	await expect(locked(f, () => { ran = true; }, 1)).rejects.toThrow("locked");
 	expect(ran).toBe(false);
 	expect(readFileSync(lock, "utf8")).toBe(`${process.pid}:new`);
 });
 
-import { runFile as rf } from "../src/tasks.ts";
+import { runFile as rf } from "../src/core/tasks.ts";
 import { tmpdir as td } from "node:os";
 import { join as j } from "node:path";
 test("short prefixed ids, prefix lookup, list query", async () => {

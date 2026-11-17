@@ -3,13 +3,16 @@ import { Text, truncateToWidth, type TUI } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { existsSync, mkdirSync, watch, type FSWatcher, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { checkName, type Task } from "./todo.ts";
-import { home } from "./util.ts";
-import { link, migrate, resolveLink, setScope, settings, storeFile } from "./store.ts";
-import { runFile } from "./tasks.ts";
-import { dexAdapter, dexWatchDirs } from "./adapters/dex/index.ts";
-import { sync, type Adapter } from "./adapters/sync.ts";
-import { saveThingsToken, thingsAdapter } from "./adapters/things/index.ts";
+import { checkName, type Task } from "../../src/core/todo.ts";
+import { home } from "../../src/core/util.ts";
+import { link, migrate, resolveLink, setScope, settings, storeFile } from "../../src/core/store.ts";
+import { runFile } from "../../src/core/tasks.ts";
+import { dexAdapter, dexWatchDirs } from "../../src/core/adapters/dex/index.ts";
+import { sync, type Adapter } from "../../src/core/adapters/sync.ts";
+import { saveThingsToken, thingsAdapter } from "../../src/core/adapters/things/index.ts";
+import type { Ctx } from "../../src/core/ctx.ts";
+
+const toCtx = (pi: ExtensionAPI, ctx: ExtensionContext): Ctx => ({ cwd: ctx.cwd, trusted: () => ctx.isProjectTrusted(), sessionId: () => ctx.sessionManager.getSessionId(), exec: (cmd, args, opts) => pi.exec(cmd, args, opts) });
 
 export default function taskPanel(pi: ExtensionAPI) {
 	let tasks: Task[] = [];
@@ -30,7 +33,7 @@ export default function taskPanel(pi: ExtensionAPI) {
 	let tui: TUI | undefined;
 	const claim = (ctx: ExtensionContext) => `${ctx.sessionManager.getSessionId()}:${process.pid}`;
 	async function run(ctx: ExtensionContext, args: string[], signal?: AbortSignal, global = false): Promise<string> {
-		const s = settings(ctx, global), file = storeFile(ctx, s);
+		const s = settings(toCtx(pi, ctx), global), file = storeFile(toCtx(pi, ctx), s);
 		if (args[0] === "list" || args[0] === "ready") await syncAll(ctx, global);
 		const out = await runFile(file, args);
 		if (!["list", "ready", "export"].includes(args[0])) await syncAll(ctx, global);
@@ -39,9 +42,9 @@ export default function taskPanel(pi: ExtensionAPI) {
 	// Adapters with sync on mirror the ai-do store; runs are chained so two syncs never interleave.
 	let syncing: Promise<void> = Promise.resolve();
 	function syncAll(ctx: ExtensionContext, global = false): Promise<void> {
-		const s = settings(ctx, global);
-		const make: Record<string, () => Adapter> = { dex: () => dexAdapter(pi, ctx), things: () => thingsAdapter(pi, s.name) };
-		const file = storeFile(ctx, s);
+		const s = settings(toCtx(pi, ctx), global);
+		const make: Record<string, () => Adapter> = { dex: () => dexAdapter(toCtx(pi, ctx)), things: () => thingsAdapter(toCtx(pi, ctx), s.name) };
+		const file = storeFile(toCtx(pi, ctx), s);
 		for (const name of Object.keys(s.adapters).filter((n) => s.adapters[n].sync)) {
 			syncing = syncing.catch(() => {}).then(() => sync(file, s.base, make[name]())).catch((error) => { if (ctx.hasUI) ctx.ui.notify(`Tasks: ${name} sync failed: ${error}`, "error"); });
 		}
@@ -75,7 +78,7 @@ export default function taskPanel(pi: ExtensionAPI) {
 
 	async function refresh(ctx: ExtensionContext) {
 		// The panel reads the store as-is: mutations already synced, and remote edits arrive via explicit list or watchers.
-		const data = JSON.parse(await runFile(storeFile(ctx, settings(ctx)), ["list", "--all", "--json"]));
+		const data = JSON.parse(await runFile(storeFile(toCtx(pi, ctx), settings(toCtx(pi, ctx))), ["list", "--all", "--json"]));
 		if (!Array.isArray(data)) throw new Error("Invalid task list");
 		tasks = data;
 		if (!ctx.hasUI) return;
@@ -91,7 +94,7 @@ export default function taskPanel(pi: ExtensionAPI) {
 		for (const k of Object.keys(p)) if (p[k] === "" || p[k] === null) delete p[k];
 		const { id, name, description, parent, result, url, force, query } = p;
 		const blocked_by = Array.isArray(p.blocked_by) ? p.blocked_by.join(",") : p.blocked_by;
-		if (action === "link") return link(ctx, id);
+		if (action === "link") return link(toCtx(pi, ctx), id);
 		if (action === "resolve") return resolveLink(url);
 		if (action === "edit" && name === undefined && description === undefined && blocked_by === undefined) throw new Error("todo_edit needs at least one of name, description, blocked_by");
 		if (name !== undefined) checkName(name);
@@ -160,7 +163,7 @@ export default function taskPanel(pi: ExtensionAPI) {
 				if (conn) { ctx.ui.notify(saveThingsToken(conn[1]), "info"); await refresh(ctx); return; }
 				const mig = want.match(/^migrate\s+(\.ai-do|\.agents\/ai-do)$/);
 				const sc = want.match(/^scope\s+(project|global)$/);
-				if (mig || sc) { ctx.ui.notify(mig ? migrate(ctx, mig[1]) : setScope(ctx, sc![1]), "info"); void watchStore(ctx); await refresh(ctx); return; }
+				if (mig || sc) { ctx.ui.notify(mig ? migrate(toCtx(pi, ctx), mig[1]) : setScope(toCtx(pi, ctx), sc![1]), "info"); void watchStore(ctx); await refresh(ctx); return; }
 				const io = want.match(/^(export|import)\s+(.+)$/);
 				if (io) {
 					const path = resolve(ctx.cwd, home(io[2].trim()));
@@ -186,8 +189,8 @@ export default function taskPanel(pi: ExtensionAPI) {
 	async function watchStore(ctx: ExtensionContext) {
 		unwatch();
 		try {
-			const s = settings(ctx);
-			const file = storeFile(ctx, s);
+			const s = settings(toCtx(pi, ctx));
+			const file = storeFile(toCtx(pi, ctx), s);
 			const dir = dirname(file); mkdirSync(dir, { recursive: true });
 			let timer: ReturnType<typeof setTimeout> | undefined;
 			const later = (fn: () => Promise<unknown>) => { clearTimeout(timer); timer = setTimeout(() => { fn().catch(() => {}); }, 200); };
@@ -200,16 +203,16 @@ export default function taskPanel(pi: ExtensionAPI) {
 			};
 			watchDir(dir, false, (name) => { if (name === file.slice(dir.length + 1)) later(() => refresh(ctx)); });
 			// Dex edits from other agents pull in through sync, which then rewrites the store and refreshes.
-			if (s.adapters.dex?.sync) for (const d of (await dexWatchDirs(pi, ctx)) ?? []) watchDir(d, true, () => later(() => syncAll(ctx)));
+			if (s.adapters.dex?.sync) for (const d of (await dexWatchDirs(toCtx(pi, ctx))) ?? []) watchDir(d, true, () => later(() => syncAll(ctx)));
 		} catch {}
 	}
-	pi.on("session_shutdown", async (_event, ctx) => { unwatch(); try { await runFile(storeFile(ctx, settings(ctx)), ["release", "--claim", claim(ctx)]); } catch {} });
+	pi.on("session_shutdown", async (_event, ctx) => { unwatch(); try { await runFile(storeFile(toCtx(pi, ctx), settings(toCtx(pi, ctx))), ["release", "--claim", claim(ctx)]); } catch {} });
 	pi.on("session_start", async (_event, ctx) => { void watchStore(ctx); restore(ctx); try { await refresh(ctx); } catch (error) { if (ctx.hasUI) ctx.ui.notify(`Tasks: ${error}`, "error"); } });
 	// Pick up tasks other agents added through Dex before each prompt.
 	pi.on("before_agent_start", async (_event, ctx) => { try { await refresh(ctx); } catch {} });
 	pi.on("tool_result", async (event, ctx) => {
 		if (event.isError) return;
-		try { if (!settings(ctx).adapters.dex?.sync) return; } catch (error) { if (ctx.hasUI) ctx.ui.notify(`Tasks: ${error}`, "error"); return; }
+		try { if (!settings(toCtx(pi, ctx)).adapters.dex?.sync) return; } catch (error) { if (ctx.hasUI) ctx.ui.notify(`Tasks: ${error}`, "error"); return; }
 		// Only todo_task calls mark tasks as this session's; shell text can't prove what ran, so bash dex calls just refresh.
 		const command = event.toolName === "bash" ? String(event.input?.command ?? "") : "";
 		if (/\bdex\b/.test(command) || /dex/i.test(event.toolName)) {

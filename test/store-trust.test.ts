@@ -9,8 +9,8 @@ test("--global is refused for untrusted projects without writing into them", asy
  const cwd = mkdtempSync(join(tmpdir(), "ai-do-cwd-"));
  process.env.AI_DO_HOME = home;
  try {
-  const { settings } = await import("../src/store.ts");
-  const ctx = { cwd, hasUI: false, isProjectTrusted: () => false, ui: { notify() {} }, sessionManager: { getSessionId: () => "s" } };
+  const { settings } = await import("../src/core/store.ts");
+  const ctx = { cwd, hasUI: false, trusted: () => false, ui: { notify() {} }, sessionId: () => "s" };
   expect(() => settings(ctx as any, true)).toThrow("requires a trusted project");
   expect(existsSync(join(cwd, ".ai-do"))).toBe(false);
  } finally {
@@ -27,10 +27,10 @@ test("aido links round-trip, survive a move, and refuse unregistered stores", as
  const home = mkdtempSync(join(tmpdir(), "ai-do-home-"));
  const parent = mkdtempSync(join(tmpdir(), "ai-do-cwd-"));
  process.env.AI_DO_HOME = home;
- const ctxAt = (cwd: string) => ({ cwd, hasUI: false, isProjectTrusted: () => true, ui: { notify() {} }, sessionManager: { getSessionId: () => "s" } }) as any;
+ const ctxAt = (cwd: string) => ({ cwd, hasUI: false, trusted: () => true, ui: { notify() {} }, sessionId: () => "s" }) as any;
  try {
-  const { link, resolveLink, settings, storeFile } = await import("../src/store.ts");
-  const { runFile } = await import("../src/tasks.ts");
+  const { link, resolveLink, settings, storeFile } = await import("../src/core/store.ts");
+  const { runFile } = await import("../src/core/tasks.ts");
   const a = join(parent, "a"), b = join(parent, "b");
   require("node:fs").mkdirSync(a);
   const s = settings(ctxAt(a)), file = storeFile(ctxAt(a), s);
@@ -59,10 +59,10 @@ test("link is refused for a store set via config.file", async () => {
  const cwd = mkdtempSync(join(tmpdir(), "ai-do-cwd-"));
  process.env.AI_DO_HOME = home; delete process.env.AI_DO_FILE;
  try {
-  const { link, settings, storeFile } = await import("../src/store.ts");
-  const { runFile } = await import("../src/tasks.ts");
+  const { link, settings, storeFile } = await import("../src/core/store.ts");
+  const { runFile } = await import("../src/core/tasks.ts");
   require("node:fs").writeFileSync(join(home, "config.json"), JSON.stringify({ file: join(cwd, "x.jsonl") }));
-  const ctx = { cwd, hasUI: false, isProjectTrusted: () => true, ui: { notify() {} }, sessionManager: { getSessionId: () => "s" } } as any;
+  const ctx = { cwd, hasUI: false, trusted: () => true, ui: { notify() {} }, sessionId: () => "s" } as any;
   const s = settings(ctx);
   expect(s.file).toBeTruthy();
   const id = /Created task (\S+)/.exec(await runFile(storeFile(ctx, s), ["create", "T"]))![1];
@@ -75,7 +75,7 @@ test("link is refused for a store set via config.file", async () => {
 });
 
 test("falls back to an existing .pi-do folder when .ai-do is missing", async () => {
- const { localDir } = await import("../src/store.ts");
+ const { localDir } = await import("../src/core/store.ts");
  const cwd = mkdtempSync(join(tmpdir(), "ai-do-cwd-"));
  try {
   expect(localDir(cwd)).toBe(join(cwd, ".ai-do"));

@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import { mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { sync } from "../src/adapters/sync.ts";
-import { runFile } from "../src/tasks.ts";
+import { sync } from "../src/core/adapters/sync.ts";
+import { runFile } from "../src/core/tasks.ts";
 
 const setup = () => {
 	const dir = mkdtempSync(`${tmpdir()}/ai-do-sync-`), remote = new Map<string, any>(); let n = 0, failAt = -1, calls = 0;

@@ -53,12 +53,12 @@ On first use ai-do creates the folder with a `config.json`, a `todos/lists.jsonl
 
 Adapters sync ai-do's store with other todo apps. Each has its own connect instructions, capabilities and limitations:
 
-- [Dex](src/adapters/dex/README.md)
-- [Things 3](src/adapters/things/README.md)
+- [Dex](src/core/adapters/dex/README.md)
+- [Things 3](src/core/adapters/things/README.md)
 
 ## Configuration
 
-`config.json` files are JSONC (comments and trailing commas allowed) and start with a `$schema` URL pinned to your installed version, so editors autocomplete and check every option ([`schema.json`](schema.json); each adapter's options are in `src/adapters/<name>/<name>.schema.json`). ai-do keeps that URL current when you upgrade. Precedence: `~/.ai-do/config.json` (global) < the project's ai-do `config.json` < environment (`AI_DO_FILE`, `AI_DO_SCOPE`). `AI_DO_HOME` moves `~/.ai-do`.
+`config.json` files are JSONC (comments and trailing commas allowed) and start with a `$schema` URL pinned to your installed version, so editors autocomplete and check every option ([`schema.json`](schema.json); each adapter's options are in `src/core/adapters/<name>/<name>.schema.json`). ai-do keeps that URL current when you upgrade. Precedence: `~/.ai-do/config.json` (global) < the project's ai-do `config.json` < environment (`AI_DO_FILE`, `AI_DO_SCOPE`). `AI_DO_HOME` moves `~/.ai-do`.
 
 ```json
 {"adapters": {"dex": {"sync": true}}, "scope": "project"}

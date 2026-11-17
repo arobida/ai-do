@@ -3,7 +3,7 @@ import { expect, mock, test } from "bun:test";
 mock.module("@earendil-works/pi-tui", () => ({ truncateToWidth: (text: string) => text, Text: class { t = ""; setText(t: string) { this.t = t; } render() { return [this.t]; } } }));
 mock.module("@earendil-works/pi-coding-agent", () => ({ getAgentDir: () => process.env.PI_CODING_AGENT_DIR || `${process.env.HOME}/.pi/agent` }));
 process.env.AI_DO_HOME = (await import("node:fs")).mkdtempSync(`${(await import("node:os")).tmpdir()}/ai-do-home-`);
-const { default: extension } = await import("../src/index.ts");
+const { default: extension } = await import("../agents/pi/index.ts");
 
 const regTools: Record<string, any> = {};
 const toolFor: Record<string, [string, any?]> = { list: ["todo_list"], ready: ["todo_list", { ready: true }], create: ["todo_create"], edit: ["todo_edit"], start: ["todo_status", { status: "started" }], complete: ["todo_status", { status: "completed" }], link: ["todo_link"], resolve: ["todo_resolve"] };
@@ -43,10 +43,10 @@ test("shows the above-editor task panel even when there are no tasks", async () 
 
 test("manifest exposes the source and host packages remain peers", async () => {
  const pkg = await Bun.file(new URL("../package.json", import.meta.url)).json();
- expect(pkg.pi.extensions).toEqual(["./src/index.ts"]);
+ expect(pkg.pi.extensions).toEqual(["./agents/pi/index.ts"]);
  expect(pkg.keywords).toContain("pi-package");
  expect(pkg.dependencies).toBeUndefined();
- expect(await Bun.file(new URL("../src/index.ts", import.meta.url)).exists()).toBe(true);
+ expect(await Bun.file(new URL("../agents/pi/index.ts", import.meta.url)).exists()).toBe(true);
 });
 
 
@@ -303,8 +303,8 @@ test("current view shows subtasks of session tasks but not unrelated new tasks",
 
 test("sync: 3-way per field, ai-do wins conflicts, deletions never propagate", async () => {
  const { mkdtempSync, rmSync } = await import("node:fs");
- const { sync } = await import("../src/adapters/sync.ts");
- const { runFile } = await import("../src/tasks.ts");
+ const { sync } = await import("../src/core/adapters/sync.ts");
+ const { runFile } = await import("../src/core/tasks.ts");
  const dir = mkdtempSync(`${(await import("node:os")).tmpdir()}/ai-do-sync-`), file = `${dir}/t.jsonl`;
  const remote = new Map<string, any>(); let n = 0;
  const adapter = { name: "fake", list: async () => [...remote.values()].map((t) => ({ ...t })), create: async (t: any) => { const id = `r${n++}`; remote.set(id, { ...t, id }); return id; }, update: async (id: string, p: any) => { remote.set(id, { ...remote.get(id), ...Object.fromEntries(Object.entries(p).filter(([, v]) => v !== undefined)) }); } };
@@ -323,7 +323,7 @@ test("sync: 3-way per field, ai-do wins conflicts, deletions never propagate", a
 });
 
 test.skipIf(process.platform !== "darwin")("Things adapter: writes via URL scheme with the saved token, reads via JXA", async () => {
- const { thingsAdapter, saveThingsToken } = await import("../src/adapters/things/index.ts");
+ const { thingsAdapter, saveThingsToken } = await import("../src/core/adapters/things/index.ts");
  const todos: any[] = [], urls: string[] = []; let project = false;
  const exec = async (cmd: string, args: string[]) => {
   if (cmd === "osascript") { expect(args.at(-1)).toBe("proj"); return { code: 0, stdout: project ? JSON.stringify(todos) : "null", stderr: "" }; }
@@ -353,7 +353,7 @@ test("config.json is JSONC, keeps $schema on this version", async () => {
  const { mkdtempSync, writeFileSync, readFileSync, readdirSync } = await import("node:fs");
  const { tmpdir } = await import("node:os");
  const { join } = await import("node:path");
- const { readConfig, schemaUrl } = await import("../src/store.ts");
+ const { readConfig, schemaUrl } = await import("../src/core/store.ts");
  const dir = mkdtempSync(join(tmpdir(), "ai-do-jsonc-"));
  expect(schemaUrl).toEndWith(`/v${JSON.parse(readFileSync("package.json", "utf8")).version}/schema.json`);
  // Comments, trailing commas and "//" inside strings; an old $schema is bumped without losing comments.
@@ -366,13 +366,13 @@ test("config.json is JSONC, keeps $schema on this version", async () => {
  // Every adapter has a schema and every $ref resolves.
  const schema = JSON.parse(readFileSync("schema.json", "utf8"));
  const refs = Object.values(schema.properties.adapters.properties).map((p: any) => p.$ref);
- expect(refs.sort()).toEqual(readdirSync("src/adapters", { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => `src/adapters/${d.name}/${d.name}.schema.json`).sort());
+ expect(refs.sort()).toEqual(readdirSync("src/core/adapters", { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => `src/core/adapters/${d.name}/${d.name}.schema.json`).sort());
  for (const ref of refs) expect(JSON.parse(readFileSync(ref, "utf8")).type).toBe("object");
 });
 
 test("store records are validated; bad imports write nothing", async () => {
  const { mkdtempSync, readFileSync, writeFileSync, rmSync } = await import("node:fs");
- const { runFile } = await import("../src/tasks.ts");
+ const { runFile } = await import("../src/core/tasks.ts");
  const dir = mkdtempSync(`${(await import("node:os")).tmpdir()}/ai-do-schema-`), file = `${dir}/t.jsonl`;
  try {
   for (const [bad, why] of [["[]", "not an object"], ['{"id":"a","name":"a","completed":false,"started_at":null,"priority":"a"}', "bad priority"], ['{"id":"a","name":"a","completed":false,"started_at":null,"due":"x"}', "unknown key due"], ['{"id":"a","name":"","completed":false,"started_at":null}', "bad name"]]) {
