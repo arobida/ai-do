@@ -431,6 +431,9 @@ test("session_shutdown releases claims; force overrides a live claim; link and r
   expect(await run(a, { action: "start", id, force: "" })).toBe(`Started task ${id} "shared"; claimed by this session`);
   expect(await run(a, { action: "edit", id, description: "d" })).toBe(`Updated task ${id} "shared"; changed description; description: "d"`);
   expect(await run(a, { action: "edit", id, description: "d" })).toBe(`No change to task ${id} "shared"; values already set; description: "d"`);
+  expect(await run(a, { action: "edit", id, human: "octo" })).toContain("changed human");
+  expect(JSON.parse(await run(a, { action: "list", human: "octo" })).map((t: any) => t.id)).toEqual([id]);
+  expect(JSON.parse(await run(a, { action: "list", human: "nobody" }))).toEqual([]);
   expect(await run(a, { action: "complete", id, result: "ok" })).toBe(`Completed task ${id} "shared"; result: ok`);
  } finally {
   for (const [k, v] of [["AI_DO_HOME", env.home], ["AI_DO_FILE", env.file], ["AI_DO_SCOPE", env.scope]] as const) v === undefined ? delete process.env[k] : (process.env[k] = v);

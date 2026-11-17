@@ -125,7 +125,7 @@ export function runFile(file: string, args: string[]): string | Promise<string> 
 		const found = items[index];
 		if (!found) throw new Error(`Task not found: ${value}`);
 		task = found;
-		var before = JSON.stringify([found.name, found.description ?? "", found.blocked_by ?? []]);
+		var before = JSON.stringify([found.name, found.description ?? "", found.blocked_by ?? [], found.human ?? ""]);
 		const claim = option("--claim"), owner = found.claimed_by;
 		// shortcut: a reused pid keeps a claim looking live until --force or release; upgrade by storing a process start time.
 		if ((action === "start" || action === "complete") && claim && owner && owner !== claim && live(found) && !option("--force")) throw new Error(`Task ${value} is claimed by ${owner}; pass force to override`);
@@ -143,8 +143,8 @@ export function runFile(file: string, args: string[]): string | Promise<string> 
 	if (action === "create") return `Created ${what}${desc}${task.parent ? `; parent ${task.parent}` : ""}${blockers}`;
 	if (action === "start") return `Started ${what}${option("--claim") ? "; claimed by this session" : ""}${option("--force") ? " (forced)" : ""}`;
 	if (action === "complete") return `Completed ${what}; ${task.result ? `result: ${task.result}` : "no result"}`;
-	const after = [task.name, task.description ?? "", task.blocked_by ?? []], was = JSON.parse(before!);
-	const changed = ["name", "description", "blocked_by"].filter((_, i) => JSON.stringify(after[i]) !== JSON.stringify(was[i]));
+	const after = [task.name, task.description ?? "", task.blocked_by ?? [], task.human ?? ""], was = JSON.parse(before!);
+	const changed = ["name", "description", "blocked_by", "human"].filter((_, i) => JSON.stringify(after[i]) !== JSON.stringify(was[i]));
 	return `${changed.length ? `Updated ${what}; changed ${changed.join(", ")}` : `No change to ${what}; values already set`}${desc}${blockers}`;
 	}
 }

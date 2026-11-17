@@ -92,15 +92,16 @@ export default function taskPanel(pi: ExtensionAPI) {
 		// Models fill unused fields with "" or null; treat both as not given.
 		for (const k of Object.keys(p)) if (p[k] === "" || p[k] === null) delete p[k];
 		const { id, name, description, parent, result, url, force, query } = p;
+		const human = p.human === "me" ? await ghUser(toCtx(pi, ctx)) ?? "" : p.human;
 		const blocked_by = Array.isArray(p.blocked_by) ? p.blocked_by.join(",") : p.blocked_by;
 		if (action === "link") return link(toCtx(pi, ctx), id);
 		if (action === "resolve") return resolveLink(url);
-		if (action === "edit" && name === undefined && description === undefined && blocked_by === undefined) throw new Error("todo_edit needs at least one of name, description, blocked_by");
+		if (action === "edit" && name === undefined && description === undefined && blocked_by === undefined && human === undefined) throw new Error("todo_edit needs at least one of name, description, blocked_by, human");
 		if (name !== undefined) checkName(name);
 		let args: string[];
-		if (action === "list") args = p.ready ? ["ready"] : ["list", ...(query?.trim() ? ["--query", query] : [])];
+		if (action === "list") args = [...(p.ready ? ["ready"] : ["list", ...(query?.trim() ? ["--query", query] : [])]), ...(human ? ["--human", human] : [])];
 		else if (action === "create") args = ["create", name, ...(description !== undefined ? ["--description", description] : []), ...(parent ? ["--parent", parent] : []), ...(blocked_by !== undefined ? ["--blocked-by", blocked_by] : []), "--created-by", "pi", "--human", await ghUser(toCtx(pi, ctx)) ?? ""];
-		else if (action === "edit") args = ["edit", id, ...(name !== undefined ? ["--name", name] : []), ...(description !== undefined ? ["--description", description] : []), ...(blocked_by !== undefined ? ["--blocked-by", blocked_by] : [])];
+		else if (action === "edit") args = ["edit", id, ...(name !== undefined ? ["--name", name] : []), ...(description !== undefined ? ["--description", description] : []), ...(blocked_by !== undefined ? ["--blocked-by", blocked_by] : []), ...(human !== undefined ? ["--human", human] : [])];
 		else if (p.status === "completed") args = ["complete", id, "--result", result || "Completed", "--claim", claim(ctx), "--no-commit"];
 		else if (result !== undefined) throw new Error("result is only for status completed");
 		else args = ["start", id, "--claim", claim(ctx)];
@@ -128,6 +129,7 @@ export default function taskPanel(pi: ExtensionAPI) {
 	tool("todo_list", "List tasks as a JSON array. ready: true lists only open, unclaimed, unblocked tasks. Ids are short and project-prefixed (e.g. proj-a1b2c3).", Type.Object({
 		query: Type.Optional(Type.String({ description: "Case-insensitive text to match in task name or description" })),
 		ready: Type.Optional(Type.Boolean({ description: "Only tasks ready to work on" })),
+		human: Type.Optional(Type.String({ description: "Only tasks for this GitHub user; \"me\" for the current user" })),
 	}));
 	tool("todo_create", "Create a task. Returns its id.", Type.Object({
 		name: Type.String({ description: "Task name, one line" }),
@@ -140,6 +142,7 @@ export default function taskPanel(pi: ExtensionAPI) {
 		id: Id,
 		name: Type.Optional(Type.String({ description: "New task name" })),
 		description: Type.Optional(Type.String({ description: "New task details" })),
+		human: Type.Optional(Type.String({ description: "GitHub user in the loop; \"me\" for the current user; \"\" clears it" })),
 		blocked_by: Type.Optional(Type.Array(Type.String(), { description: "Replaces the blocker list; [] clears it" })),
 	}));
 	tool("todo_status", "Start or complete a task. Starting claims it for this session.", Type.Object({
