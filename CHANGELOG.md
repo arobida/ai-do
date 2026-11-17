@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add task attribution: `created_by` and `human` fields (todo.txt `aiby:`/`aihuman:`), `--human` on `create`/`edit`/`list`/`ready`, `AI_DO_AGENT`/`AI_DO_USER`, and `adapters.<name>.human` to sync only one human's tasks.
 - Add `ai-do sync`: syncs every adapter enabled in config; shares `syncAll` (`src/core/adapters/sync-all.ts`) with the Pi extension.
 - Add `ai-do` CLI (`src/cli`) over the shared core: `list`, `ready`, `create`, `start`, `complete`, `edit`, `import`, `export`, `link`, `scope`, `migrate`. Trusted if `AI_DO_TRUST=1` or the project has an `.ai-do/` folder; otherwise it uses the temp store.
 - Split code into layers: `src/core` (shared, host-free), `src/cli`, `agents/shared` (skill and assets reused by agents), and `agents/<name>` (Pi extension, Claude Code plugin, Codex, opencode and Cursor integrations).

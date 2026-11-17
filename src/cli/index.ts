@@ -5,20 +5,21 @@ import { parseArgs } from "node:util";
 import { checkName } from "../core/todo.ts";
 import { home } from "../core/util.ts";
 import { link, migrate, resolveLink, setScope, settings, storeFile } from "../core/store.ts";
+import { agentName, ghUser } from "../core/identity.ts";
 import { runFile } from "../core/tasks.ts";
 import { syncAll } from "../core/adapters/sync-all.ts";
 import type { Ctx } from "../core/ctx.ts";
 
 const usage = `usage: ai-do [--global] [--json] <command>
-  list [--query q] | ready
-  create <name> [--description d] [--parent id] [--blocked-by a,b]
+  list [--query q] [--human u|me] | ready [--human u|me]
+  create <name> [--description d] [--parent id] [--blocked-by a,b] [--human u]
   start <id> | complete <id> [--result r]
-  edit <id> [--name n] [--description d] [--blocked-by a,b]
+  edit <id> [--name n] [--description d] [--blocked-by a,b] [--human u ("" clears)]
   import <file> | export [file]
   sync                      sync enabled adapters (dex, things)
   link <id> | resolve <url>
   scope project|global | migrate .ai-do|.agents/ai-do
-env: AI_DO_TRUST=1 trusts cwd; AI_DO_SESSION overrides the session id`;
+env: AI_DO_AGENT names the creator; AI_DO_USER sets your GitHub user; AI_DO_TRUST=1 trusts cwd; AI_DO_SESSION overrides the session id`;
 
 const cwd = process.cwd();
 const ctx: Ctx = {
@@ -35,7 +36,7 @@ const ctx: Ctx = {
 try {
 	const { values: v, positionals: [cmd, arg] } = parseArgs({
 		allowPositionals: true,
-		options: { global: { type: "boolean" }, json: { type: "boolean" }, help: { type: "boolean" }, query: { type: "string" }, description: { type: "string" }, parent: { type: "string" }, "blocked-by": { type: "string" }, name: { type: "string" }, result: { type: "string" } },
+		options: { global: { type: "boolean" }, json: { type: "boolean" }, help: { type: "boolean" }, query: { type: "string" }, description: { type: "string" }, parent: { type: "string" }, "blocked-by": { type: "string" }, human: { type: "string" }, name: { type: "string" }, result: { type: "string" } },
 	});
 	if (v.help || !cmd) { console.log(usage); process.exit(0); }
 	const need = () => arg ?? (() => { throw new Error(`${cmd} needs an argument`); })();
@@ -53,12 +54,13 @@ try {
 	else {
 		const opt = (k: string, flag = k) => v[k as "name"] === undefined ? [] : [`--${flag}`, v[k as "name"]!];
 		let args: string[];
-		if (cmd === "list") args = ["list", ...opt("query")];
-		else if (cmd === "ready") args = ["ready"];
-		else if (cmd === "create") { checkName(need()); args = ["create", arg, ...opt("description"), ...opt("parent"), ...opt("blocked-by")]; }
+		const who = v.human === "me" ? await ghUser(ctx) ?? (() => { throw new Error("Cannot resolve --human me: set AI_DO_USER or git config github.user"); })() : v.human;
+		if (cmd === "list") args = ["list", ...opt("query"), ...(who === undefined ? [] : ["--human", who])];
+		else if (cmd === "ready") args = ["ready", ...(who === undefined ? [] : ["--human", who])];
+		else if (cmd === "create") { checkName(need()); args = ["create", arg, ...opt("description"), ...opt("parent"), ...opt("blocked-by"), "--created-by", agentName(), "--human", v.human ?? await ghUser(ctx) ?? ""]; }
 		else if (cmd === "edit") {
-			if (!v.name && v.description === undefined && v["blocked-by"] === undefined) throw new Error("edit needs --name, --description or --blocked-by");
-			args = ["edit", need(), ...opt("name"), ...opt("description"), ...opt("blocked-by")];
+			if (!v.name && v.description === undefined && v["blocked-by"] === undefined && v.human === undefined) throw new Error("edit needs --name, --description, --blocked-by or --human");
+			args = ["edit", need(), ...opt("name"), ...opt("description"), ...opt("blocked-by"), ...opt("human")];
 		}
 		else if (cmd === "start") args = ["start", need(), "--claim", `${ctx.sessionId()}:${process.pid}`];
 		else if (cmd === "complete") args = ["complete", need(), "--result", v.result || "Completed", "--no-commit"];
@@ -72,7 +74,7 @@ try {
 			else process.stdout.write(text);
 			if (skipped.length) console.error(`Not exported (todo.txt would misread these names):\n${skipped.join("\n")}`);
 		} else if (cmd === "list" || cmd === "ready") {
-			out(v.json ? raw : JSON.parse(raw).map((t: any) => `[${t.completed ? "x" : t.started_at ? "~" : " "}] ${t.id} ${t.name}`).join("\n"));
+			out(v.json ? raw : JSON.parse(raw).map((t: any) => `[${t.completed ? "x" : t.started_at ? "~" : " "}] ${t.id} ${t.name}${t.human ? ` @${t.human}` : ""}`).join("\n"));
 		} else out(raw);
 	}
 } catch (e: any) {

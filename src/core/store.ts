@@ -25,7 +25,7 @@ export const writeConfig = (dir: string, config: object) => writeFileSync(join(d
 const ensureConfig = (dir: string) => { readConfig(dir); if (!existsSync(join(dir, "config.json"))) writeConfig(dir, {}); };
 
 // <dir>/config.json (JSONC). Keeps "$schema" pointed at this version.
-export function readConfig(dir: string): { adapters?: Record<string, { sync?: boolean }>; file?: string; scope?: string; id?: string } {
+export function readConfig(dir: string): { adapters?: Record<string, { sync?: boolean; human?: string }>; file?: string; scope?: string; id?: string } {
 	const path = join(dir, "config.json");
 	let text: string;
 	try { text = readFileSync(path, "utf8"); }
@@ -34,7 +34,7 @@ export function readConfig(dir: string): { adapters?: Record<string, { sync?: bo
 	// Text replace, not a rewrite, so the user's comments survive.
 	if (typeof config.$schema === "string" && config.$schema !== schemaUrl) writeFileSync(path, text.replace(JSON.stringify(config.$schema), JSON.stringify(schemaUrl)));
 	if (config.backend !== undefined) throw new Error(`"backend" was replaced by "adapters" in ${path}`);
-	if (config.adapters !== undefined && (typeof config.adapters !== "object" || Array.isArray(config.adapters) || Object.entries(config.adapters).some(([k, v]: [string, any]) => !["dex", "things"].includes(k) || !v || typeof v !== "object" || (v.sync !== undefined && typeof v.sync !== "boolean")))) throw new Error(`Invalid adapters in ${path}`);
+	if (config.adapters !== undefined && (typeof config.adapters !== "object" || Array.isArray(config.adapters) || Object.entries(config.adapters).some(([k, v]: [string, any]) => !["dex", "things"].includes(k) || !v || typeof v !== "object" || (v.sync !== undefined && typeof v.sync !== "boolean") || (v.human !== undefined && (typeof v.human !== "string" || !v.human.trim()))))) throw new Error(`Invalid adapters in ${path}`);
 	if (config.file !== undefined && (typeof config.file !== "string" || !config.file.trim())) throw new Error(`Invalid file in ${path}`);
 	if (config.scope !== undefined && !["project", "global", "temp"].includes(config.scope)) throw new Error(`Invalid scope in ${path}`);
 	if (config.id !== undefined && (typeof config.id !== "string" || !/^[\w-]+$/.test(config.id))) throw new Error(`Invalid id in ${path}`);
@@ -68,7 +68,7 @@ function saveRegistry(projects: Project[]) {
 	writeFileSync(temp, projects.map((p) => JSON.stringify(p) + "\n").join("")); renameSync(temp, registryFile());
 }
 
-export interface Settings { adapters: Record<string, { sync?: boolean }>; file?: string; scope: string; base: string; local: string; name: string; id: string; registered: boolean }
+export interface Settings { adapters: Record<string, { sync?: boolean; human?: string }>; file?: string; scope: string; base: string; local: string; name: string; id: string; registered: boolean }
 
 export const localDir = (cwd: string) => existsSync(join(cwd, ".agents", "ai-do")) ? join(cwd, ".agents/ai-do") : withLegacy(join(cwd, ".ai-do"));
 export const globalDir = (s: { name: string; id: string }) => join(aiDoHome(), "projects", `${s.name}.${s.id}`);

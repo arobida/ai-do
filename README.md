@@ -39,7 +39,7 @@ Until then, install from a local checkout (see [Contributing](CONTRIBUTING.md)).
 - `ctrl+shift+t` collapses or expands the panel.
 - `ctrl+shift+v` cycles views.
 
-Current shows tasks worked on in this session. Newly created top-level tasks remain in the project backlog until started. Tasks are stored as JSONL, one JSON object per task: `id`, `name`, `completed`, `started_at`, and optional `priority` (A-Z), `created` and `completed_date` (YYYY-MM-DD), `description`, `parent`, `result` (schema: `Task` in `src/todo.ts`). `+projects`, `@contexts` and other `key:value` tags stay in `name`. Export renders each record as a [todo.txt](https://github.com/todotxt/todo.txt) line, with ai-do fields as `aiid:`, `aistart:`, `aidesc:`, `aiparent:` and `airesult:` tags, so import reads it back. Older `{"todo":"..."}` stores are converted on the next write. Avoid concurrent writers to the same file.
+Current shows tasks worked on in this session. Newly created top-level tasks remain in the project backlog until started. Tasks are stored as JSONL, one JSON object per task: `id`, `name`, `completed`, `started_at`, and optional `priority` (A-Z), `created` and `completed_date` (YYYY-MM-DD), `description`, `parent`, `result`, `created_by` (agent name, or `@user` for a human) and `human` (GitHub username of the human in the loop; CLI/Pi create default it to you via `AI_DO_USER`, `git config github.user` or `gh`; `AI_DO_AGENT` names the CLI creator) (schema: `Task` in `src/todo.ts`). `+projects`, `@contexts` and other `key:value` tags stay in `name`. Export renders each record as a [todo.txt](https://github.com/todotxt/todo.txt) line, with ai-do fields as `aiid:`, `aistart:`, `aidesc:`, `aiparent:`, `airesult:`, `aiby:` and `aihuman:` tags, so import reads it back. Older `{"todo":"..."}` stores are converted on the next write. Avoid concurrent writers to the same file.
 
 ## CLI
 
@@ -87,7 +87,7 @@ Adapters sync ai-do's store with other todo apps. Each has its own connect instr
 {"adapters": {"dex": {"sync": true}}, "scope": "project"}
 ```
 
-- `adapters`: per-adapter options; `dex` or `things`, each with `sync` (boolean).
+- `adapters`: per-adapter options; `dex` or `things`, each with `sync` (boolean) and `human` (`"me"` or a GitHub username: sync only tasks whose `human` matches; tasks with no human stay local).
 - `scope`: `project` (default), `global` or `temp`; read from the global config or `AI_DO_SCOPE`.
 - `file`: explicit todos file, overriding scope. `~/` supported; relative paths resolve from Pi's working directory.
 

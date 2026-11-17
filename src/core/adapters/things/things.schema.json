@@ -4,6 +4,14 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "sync": { "type": "boolean", "description": "Two-way sync with the same-named Things 3 project (macOS). The auth token is set with /todos connect things, never here." }
+    "sync": {
+      "type": "boolean",
+      "description": "Two-way sync with the same-named Things 3 project (macOS). The auth token is set with /todos connect things, never here."
+    },
+    "human": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Only sync tasks whose human matches this GitHub username; \"me\" is you. Tasks with no human are skipped."
+    }
   }
 }

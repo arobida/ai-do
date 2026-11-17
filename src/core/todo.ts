@@ -13,11 +13,13 @@ export interface Task {
 	parent?: string;
 	result?: string;
 	claimed_by?: string; // "<sessionId>:<pid>"; local only, never synced
+	created_by?: string; // agent name (pi, claude-code, cli, ...) or "@user" when a human created it
+	human?: string; // GitHub username (no @) of the human in the loop
 	blocked_by?: string[]; // ids of tasks that must complete first; local only
 }
 
 const date = /^\d{4}-\d{2}-\d{2}$/;
-const optional = ["priority", "created", "completed_date", "description", "parent", "result", "claimed_by"] as const;
+const optional = ["priority", "created", "completed_date", "description", "parent", "result", "claimed_by", "created_by", "human"] as const;
 
 // Validates a parsed JSONL record and returns it as a Task; unknown keys are rejected so typos never pass silently.
 export function toTask(record: any): Task {
@@ -36,13 +38,13 @@ export function toTask(record: any): Task {
 
 // Drops empty optional fields so records stay minimal and stable.
 // Keys are written in schema order so every record reads the same.
-const order = ["id", "name", "completed", "priority", "created", "completed_date", "started_at", "description", "parent", "result", "claimed_by", "blocked_by"];
+const order = ["id", "name", "completed", "priority", "created", "completed_date", "started_at", "description", "parent", "result", "claimed_by", "created_by", "human", "blocked_by"];
 export const clean = (task: Task): Task => Object.fromEntries(Object.entries(task).sort(([a], [b]) => order.indexOf(a) - order.indexOf(b)).filter(([key, value]) => value !== undefined && (value !== "" || key === "name") && !(Array.isArray(value) && !value.length))) as Task;
 
 // Parses one todo.txt line (import).
 export function parseTodo(line: string): Task {
 	const meta: Record<string, string> = {};
-	let body = line.replace(/(^|\s)pi(id|start|desc|parent|result):/g, "$1ai$2:").replace(/(?:^|\s)(aiid|aistart|aidesc|aiparent|airesult|pri):([^\s:]+)/g, (match, key, value) => {
+	let body = line.replace(/(^|\s)pi(id|start|desc|parent|result):/g, "$1ai$2:").replace(/(?:^|\s)(aiid|aistart|aidesc|aiparent|airesult|aiby|aihuman|pri):([^\s:]+)/g, (match, key, value) => {
 		if (key === "pri" && !/^[A-Z]$/.test(value)) return match;
 		try { meta[key] = decodeURIComponent(value); return ""; } catch { return match; }
 	}).trim();
@@ -55,14 +57,14 @@ export function parseTodo(line: string): Task {
 	return toTask(clean({
 		id: meta.aiid || `line-${createHash("sha256").update(line).digest("hex").slice(0, 12)}`,
 		name: body, completed: !!done, priority: pri?.[1] ?? meta.pri, created: created?.[1], completed_date: done?.[1],
-		started_at: meta.aistart || null, description: meta.aidesc, parent: meta.aiparent, result: meta.airesult,
+		started_at: meta.aistart || null, description: meta.aidesc, parent: meta.aiparent, result: meta.airesult, created_by: meta.aiby, human: meta.aihuman,
 	}));
 }
 
 // Renders a task as a todo.txt line (export). Completed tasks move priority to pri: per the todo.txt spec.
 export function todoLine(task: Task): string {
 	const head = task.completed ? ["x", task.completed_date] : [task.priority && `(${task.priority})`];
-	const tags = Object.entries({ pri: task.completed ? task.priority : undefined, aiid: task.id, aistart: task.started_at, aidesc: task.description, aiparent: task.parent, airesult: task.result })
+	const tags = Object.entries({ pri: task.completed ? task.priority : undefined, aiid: task.id, aistart: task.started_at, aidesc: task.description, aiparent: task.parent, airesult: task.result, aiby: task.created_by, aihuman: task.human })
 		.filter(([, value]) => typeof value === "string" && value !== "").map(([key, value]) => `${key}:${encodeURIComponent(value as string)}`);
 	const line = [...head, task.created, task.name.trim(), ...tags].filter(Boolean).join(" ");
 	// todo.txt has no escape, so a name that reads back as a marker (x, (A), date) must be refused rather than exported wrong.
@@ -76,5 +78,5 @@ export function checkName(name: string) {
 	if (/[\r\n]/.test(name) || !name.trim()) throw new Error("Task name must be a non-empty single line");
 	if (/^\s*x\s/.test(name)) throw new Error('Task name must not start with "x " (todo.txt completion marker)');
 	if (/^\s*-/.test(name)) throw new Error('Task name must not start with "-"');
-	if (/(?:^|\s)(?:ai|pi)(?:id|start|desc|parent|result):/.test(name)) throw new Error("Task name must not contain ai-do metadata tokens (aiid:, aistart:, aidesc:, aiparent:, airesult:)");
+	if (/(?:^|\s)(?:ai|pi)(?:id|start|desc|parent|result|by|human):/.test(name)) throw new Error("Task name must not contain ai-do metadata tokens (aiid:, aistart:, aidesc:, aiparent:, airesult:, aiby:, aihuman:)");
 }

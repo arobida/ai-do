@@ -24,6 +24,7 @@ ai-do start a1b2
 ai-do complete a1b2 --result "Parser tests added; 3 edge-case bugs fixed"
 ai-do edit a1b2 --description "Updated scope: include BOM handling"
 ai-do edit a1b2 --blocked-by c3d4
+ai-do list --human me   # tasks for the human in the loop; create defaults --human to them, `--human <user>` overrides
 ai-do import plan.txt
 ai-do export tasks.txt
 ai-do link a1b2
@@ -37,6 +38,7 @@ If Dex or Things sync is enabled in config, run `ai-do sync` before reading task
 
 ## Rules
 
+- Prefix every command with `AI_DO_AGENT=<your agent name>` (e.g. `AI_DO_AGENT=claude-code ai-do create ...`) so tasks record who created them.
 - Ids accept a unique prefix: `ai-do start a1b` works if only one id starts with `a1b`.
 - Keep the name short. Put details, context and acceptance criteria in `--description`.
 - Run `start` before you begin working on a task.

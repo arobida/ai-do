@@ -8,6 +8,7 @@ import { home } from "../../src/core/util.ts";
 import { link, migrate, resolveLink, setScope, settings, storeFile } from "../../src/core/store.ts";
 import { runFile } from "../../src/core/tasks.ts";
 import { dexWatchDirs } from "../../src/core/adapters/dex/index.ts";
+import { ghUser } from "../../src/core/identity.ts";
 import { syncAll as syncAllCore } from "../../src/core/adapters/sync-all.ts";
 import { saveThingsToken } from "../../src/core/adapters/things/index.ts";
 import type { Ctx } from "../../src/core/ctx.ts";
@@ -98,7 +99,7 @@ export default function taskPanel(pi: ExtensionAPI) {
 		if (name !== undefined) checkName(name);
 		let args: string[];
 		if (action === "list") args = p.ready ? ["ready"] : ["list", ...(query?.trim() ? ["--query", query] : [])];
-		else if (action === "create") args = ["create", name, ...(description !== undefined ? ["--description", description] : []), ...(parent ? ["--parent", parent] : []), ...(blocked_by !== undefined ? ["--blocked-by", blocked_by] : [])];
+		else if (action === "create") args = ["create", name, ...(description !== undefined ? ["--description", description] : []), ...(parent ? ["--parent", parent] : []), ...(blocked_by !== undefined ? ["--blocked-by", blocked_by] : []), "--created-by", "pi", "--human", await ghUser(toCtx(pi, ctx)) ?? ""];
 		else if (action === "edit") args = ["edit", id, ...(name !== undefined ? ["--name", name] : []), ...(description !== undefined ? ["--description", description] : []), ...(blocked_by !== undefined ? ["--blocked-by", blocked_by] : [])];
 		else if (p.status === "completed") args = ["complete", id, "--result", result || "Completed", "--claim", claim(ctx), "--no-commit"];
 		else if (result !== undefined) throw new Error("result is only for status completed");

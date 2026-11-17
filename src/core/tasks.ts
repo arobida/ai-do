@@ -64,9 +64,10 @@ export function runFile(file: string, args: string[]): string | Promise<string> 
 	}
 	if (action === "list") {
 		const q = args.includes("--query") ? args[args.indexOf("--query") + 1]?.toLowerCase() : undefined;
-		return JSON.stringify(q ? items.filter((t) => `${t.name}\n${t.description ?? ""}`.toLowerCase().includes(q)) : items);
+		const h = args.includes("--human") ? args[args.indexOf("--human") + 1] : undefined;
+		return JSON.stringify(items.filter((t) => (!q || `${t.name}\n${t.description ?? ""}`.toLowerCase().includes(q)) && (h === undefined || t.human === h)));
 	}
-	if (action === "ready") return JSON.stringify(items.filter((t) => !t.completed && !live(t) && (t.blocked_by ?? []).every((b) => items.find((i) => i.id === b)?.completed ?? true)));
+	if (action === "ready") return JSON.stringify(items.filter((t) => (!args.includes("--human") || t.human === args[args.indexOf("--human") + 1]) && !t.completed && !live(t) && (t.blocked_by ?? []).every((b) => items.find((i) => i.id === b)?.completed ?? true)));
 	const save = () => { const temp = `${file}.${randomUUID()}.tmp`; writeFileSync(temp, items.map((task) => JSON.stringify(clean(task)) + "\n").join(""), { mode: 0o600 }); renameSync(temp, file); };
 	const today = () => new Date().toISOString().slice(0, 10);
 	if (action === "import") {
@@ -116,7 +117,7 @@ export function runFile(file: string, args: string[]): string | Promise<string> 
 	if (action === "create") {
 		const parent = option("--parent") && findId(items, option("--parent")!, file);
 		checkParent(items, "", parent);
-		task = { id: newId(file, items), name: value, completed: false, created: today(), started_at: null, description: option("--description"), parent, blocked_by: ids(option("--blocked-by"))?.map((b) => findId(items, b, file)) };
+		task = { id: newId(file, items), name: value, completed: false, created: today(), started_at: null, description: option("--description"), parent, created_by: option("--created-by"), human: option("--human"), blocked_by: ids(option("--blocked-by"))?.map((b) => findId(items, b, file)) };
 		checkBlockers(items, task.id, task.blocked_by);
 	} else {
 		const ref = findId(items, value, file);
@@ -130,7 +131,7 @@ export function runFile(file: string, args: string[]): string | Promise<string> 
 		if ((action === "start" || action === "complete") && claim && owner && owner !== claim && live(found) && !option("--force")) throw new Error(`Task ${value} is claimed by ${owner}; pass force to override`);
 		if (action === "start") { task.started_at = new Date().toISOString(); if (claim) task.claimed_by = claim; }
 		else if (action === "complete") { task.claimed_by = undefined; task.completed = true; task.completed_date ||= today(); task.result = option("--result"); }
-		else if (action === "edit") { if (option("--name") !== undefined) task.name = option("--name")!; if (option("--description") !== undefined) task.description = option("--description"); if (option("--blocked-by") !== undefined) { task.blocked_by = ids(option("--blocked-by"))?.map((b) => findId(items, b, file)); checkBlockers(items, task.id, task.blocked_by); } }
+		else if (action === "edit") { if (option("--name") !== undefined) task.name = option("--name")!; if (option("--description") !== undefined) task.description = option("--description"); if (option("--human") !== undefined) task.human = option("--human"); if (option("--blocked-by") !== undefined) { task.blocked_by = ids(option("--blocked-by"))?.map((b) => findId(items, b, file)); checkBlockers(items, task.id, task.blocked_by); } }
 		else throw new Error(`Unknown action: ${action}`);
 	}
 	if (action === "create" || (action === "edit" && option("--name") !== undefined)) checkName(task.name);

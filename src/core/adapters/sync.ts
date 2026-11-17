@@ -24,15 +24,16 @@ const toLink = (r: Record<string, unknown>): Link => {
 const fields = ["name", "description", "completed", "started_at", "result", "parent"] as const;
 
 // Two-way sync of the ai-do todos file with one adapter. Per field: only one side changed -> copy it; both -> ai-do wins.
+// With `human`, only tasks whose human matches take part; the rest are left untouched (deletions are never propagated, so they just stay unlinked).
 // Deletions are never propagated: a task missing on one side just stays unlinked-but-remembered.
-export async function sync(file: string, base: string, adapter: Adapter): Promise<void> {
+export async function sync(file: string, base: string, adapter: Adapter, human?: string): Promise<void> {
 	const linksFile = join(base, "sync", `${adapter.name}.jsonl`);
 	mkdirSync(join(base, "sync"), { recursive: true });
 	return withLock(linksFile, async () => {
 	const links = readJsonl(linksFile, toLink);
 	// Links are saved even if a later step throws, so created tasks are never duplicated next sync.
 	try {
-	const local: Task[] = JSON.parse(await runFile(file, ["list"]));
+	const local: Task[] = JSON.parse(await runFile(file, ["list"])).filter((t: Task) => human === undefined || t.human === human);
 	const remote = await adapter.list();
 	const byLocal = new Map(local.map((t) => [t.id, t])), byRemote = new Map(remote.map((t) => [t.id, t]));
 	const toRemote = new Map(links.map((l) => [l.local, l.remote])), toLocal = new Map(links.map((l) => [l.remote, l.local]));
@@ -54,7 +55,7 @@ export async function sync(file: string, base: string, adapter: Adapter): Promis
 	for (const r of [...remote].sort((a, b) => depth(a, byRemote) - depth(b, byRemote))) {
 		if (toLocal.has(r.id)) continue;
 		const t = norm({ ...r, id: crypto.randomUUID(), parent: r.parent && toLocal.get(r.parent) });
-		const saved = await put(t);
+		const saved = await put(human === undefined ? t : { ...t, human }); // pulled tasks join the filtered set
 		toRemote.set(t.id, r.id); toLocal.set(r.id, t.id);
 		links.push({ local: t.id, remote: r.id, base: saved });
 	}

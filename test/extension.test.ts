@@ -141,6 +141,7 @@ test("config.json layers: global < project < env, scope picks storage", async ()
  process.env.AI_DO_HOME = root; delete process.env.AI_DO_FILE; delete process.env.AI_DO_SCOPE;
  try {
   mkdirSync(cwd); mkdirSync(root);
+  process.env.AI_DO_USER = "tester"; // keeps ghUser from calling exec, which this test counts as dex calls
   let tool: any, command: any; let trusted = true; let dexCalls = 0;
   extension({ registerTool: (t: any) => tool = shimTool(t), registerCommand: (_n: string, c: any) => command = c, registerShortcut() {}, on() {}, appendEntry() {}, exec: async () => { dexCalls++; return { code: 0, stdout: "[]", stderr: "" }; } } as any);
   const notes: string[] = [];
