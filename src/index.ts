@@ -129,7 +129,8 @@ export default function taskPanel(pi: ExtensionAPI) {
 	}));
 	tool("todo_create", "Create a task. Returns its id.", Type.Object({
 		name: Type.String({ description: "Task name, one line" }),
-		description: Type.Optional(Type.String({ description: "Task details" })),
+		// Required: Kimi often omitted it when optional; "" is allowed for no details.
+		description: Type.String({ description: "Task details; \"\" if none" }),
 		parent: Type.Optional(Type.String({ description: "Id of an existing task to nest under" })),
 		blocked_by: Type.Optional(Blockers),
 	}));
