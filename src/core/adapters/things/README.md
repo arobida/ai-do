@@ -11,7 +11,7 @@ Syncs ai-do's todo store with [Things 3](https://culturedcode.com/things/) on ma
    /todos connect things <token>
    ```
    It is written to `~/.ai-do/adapters/things.json` with `0600` permissions, never to a `config.json` (which may be committed). `AI_DO_THINGS_TOKEN` overrides the file.
-4. Turn sync on in a ai-do `config.json` (global `~/.ai-do/config.json` or the project's):
+4. Turn sync on in an ai-do `config.json` (global `~/.ai-do/config.json` or the project's):
    ```json
    {"adapters": {"things": {"sync": true}}}
    ```
@@ -32,8 +32,8 @@ Each ai-do project syncs with the Things project of the same name (the project f
 | Description → notes | yes | yes |
 | Completed (and un-completed) | yes | yes |
 
-- Two-way, using the same rules as every adapter: each list or change in ai-do syncs both ways; per field, a change on one side since the last sync is copied across, and if both changed, ai-do wins.
-- Changes made in Things are pulled on the next ai-do action and before each prompt.
+- Two-way, with the same rules as every adapter: each list or change in ai-do syncs both ways. Per field, ai-do copies across a change made on one side since the last sync, and ai-do wins when both sides changed the field.
+- ai-do pulls changes made in Things on its next action and before each prompt.
 - State: links and last-synced copies live in `sync/things.jsonl` next to the store's `config.json`.
 
 ## Limitations
@@ -43,7 +43,7 @@ Each ai-do project syncs with the Things project of the same name (the project f
 - Renaming either project breaks the match; ai-do then creates a new Things project.
 - Not synced: started time, result, parent/subtasks (Things has projects, headings and checklists rather than subtasks), and Things' when/deadline, tags, areas, projects, headings and checklists.
 - Deletions are never propagated in either direction.
-- The URL scheme does not return the new to-do's id to a command-line caller. ai-do tags the notes with a temporary `[ai-do:<id>]` marker, waits up to about 5 seconds to find the to-do, then removes the marker. If Things is slower than that, the sync fails and is retried; the retry can create a duplicate.
+- The URL scheme does not return the new to-do's id to a command-line caller. ai-do tags the notes with a temporary `[ai-do:<id>]` marker, waits up to about 5 seconds to find the to-do, then removes the marker. If Things takes longer, the sync fails and retries, and the retry can create a duplicate.
 - Adding uses `open -g` so Things stays in the background, but macOS may still launch it.
 - No live updates: Things has no folder to watch.
-- Sync failures show as a notice and do not block the local change.
+- A sync failure shows as a notice and does not block the local change.

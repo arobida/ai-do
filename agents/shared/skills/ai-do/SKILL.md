@@ -5,7 +5,7 @@ description: Use when tracking multi-step work, todos, or task lists in this pro
 
 # ai-do
 
-Track work as tasks with the `ai-do` CLI. Use it for any multi-step job so progress survives the session.
+Track work as tasks with the `ai-do` CLI. Use it for any multi-step job, so progress survives the session.
 
 ## When to use
 
@@ -24,7 +24,7 @@ ai-do start a1b2
 ai-do complete a1b2 --result "Parser tests added; 3 edge-case bugs fixed"
 ai-do edit a1b2 --description "Updated scope: include BOM handling"
 ai-do edit a1b2 --blocked-by c3d4
-ai-do list --human me   # tasks for the human in the loop; create defaults --human to them, `--human <user>` overrides
+ai-do list --human me   # tasks for the human in the loop; `create` defaults --human to that user, and `--human <user>` overrides
 ai-do import plan.txt
 ai-do export tasks.txt
 ai-do link a1b2
@@ -39,11 +39,11 @@ If Dex or Things sync is enabled in config, run `ai-do sync` before reading task
 ## Rules
 
 - Prefix every command with `AI_DO_AGENT=<your agent name>` (e.g. `AI_DO_AGENT=claude-code ai-do create ...`) so tasks record who created them.
-- Ids accept a unique prefix: `ai-do start a1b` works if only one id starts with `a1b`.
-- Keep the name short. Put details, context and acceptance criteria in `--description`.
-- Run `start` before you begin working on a task.
-- Run `complete --result "..."` when it is done. The result says what changed, in one line.
-- `ready` lists unblocked work. Pick from it before starting something else.
+- Ids accept a unique prefix: `ai-do start a1b` works when only one id starts with `a1b`.
+- Keep the name short. Put details, context, and acceptance criteria in `--description`.
+- Run `start` before you begin a task.
+- Run `complete --result "..."` when the task is done. The result states what changed, in one line.
+- `ready` lists unblocked work. Pick from it before starting anything else.
 - `list` and `ready` print one line per task. Add `--json` for machine-readable output.
 - `--global` writes to the global store instead of the project store. Use it only for tasks that span projects.
 

@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "skills": {
+    "technical-writing": {
+      "source": "riekelt/technical-writer",
+      "commit": "85e53729dd959a2795d593d6769068e342cf3486",
+      "sourceType": "github",
+      "skillPath": "plugins/technical-writer/skills/technical-writing/SKILL.md",
+      "computedHash": "1887649c89f345364dc4d0cb58f0f6fa1b4b6fd52286eecdc2823585d3109015"
+    }
+  }
+}

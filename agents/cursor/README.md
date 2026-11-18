@@ -1,8 +1,6 @@
 # ai-do for Cursor
 
-Cursor reads `SKILL.md` skills from `.cursor/skills/` (project) or `~/.cursor/skills/` (user), so this agent installs the shared skill unchanged.
-
-Requires the `ai-do` CLI on your `PATH`.
+Cursor reads `SKILL.md` skills from `.cursor/skills/` (project) or `~/.cursor/skills/` (user), so it uses the shared skill unchanged. It requires the `ai-do` CLI on your PATH.
 
 ## Install
 
@@ -24,13 +22,13 @@ User-wide install:
 mkdir -p ~/.cursor/skills && cp -R /path/to/ai-do/dist/cursor/skills/ai-do ~/.cursor/skills/
 ```
 
-Restart Cursor, then check Customize -> Skills for `ai-do`. You can also run it with `/ai-do` in chat.
+Restart Cursor, then look for `ai-do` under Customize -> Skills. You can also run `/ai-do` in chat.
 
 Docs: https://cursor.com/docs/context/skills
 
 ## Tools (MCP)
 
-Requires `ai-do` on PATH (e.g. `bun link`). Add to `.cursor/mcp.json`:
+Requires `ai-do` on your PATH (for example, after `bun link`). Add this to `.cursor/mcp.json`:
 
 ```json
 {"mcpServers":{"ai-do":{"command":"ai-do","args":["mcp"]}}}

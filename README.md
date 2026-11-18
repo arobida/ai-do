@@ -1,19 +1,19 @@
 # ai-do
 
-A standalone task panel for Pi. Exposes the `todo_task` tool and a widget above the editor without changing conversation context management.
+A task store for coding agents. In Pi it adds task tools and a panel above the editor. Other agents reach the same store through the `ai-do` CLI or an MCP server.
 
 ## Features
 
-- **Task panel widget** — live task list rendered above the editor; collapsible, with current/project/completed views.
-- **`todo_task` tool** — the agent can create, list, start, edit, and complete tasks on request.
-- **todo.txt format** — import/export todo.txt lines; priority, dates and ai-do fields are stored as separate JSON keys.
-- **One store, synced adapters** — tasks live in ai-do's JSONL file; an optional Dex adapter syncs both ways via the `dex` CLI.
-- **Export** — dump the store to a plain todo.txt file with `/todos export <path>`.
-- **Live reload** — the panel watches task storage and refreshes when other agents change it.
+- Task panel: a live task list above the editor, collapsible, with current, project and completed views.
+- Task tools: the Pi agent creates, lists, edits, starts and completes tasks through the `todo_list`, `todo_create`, `todo_edit` and `todo_status` tools (plus `todo_link` and `todo_resolve`).
+- todo.txt format: import and export todo.txt lines. Priority, dates and ai-do fields are stored as separate JSON keys.
+- One store, synced adapters: tasks live in ai-do's JSONL file, and the optional Dex and Things adapters sync both ways.
+- Export: `/todos export <path>` writes the store to a plain todo.txt file.
+- Live reload: the panel watches task storage and refreshes when other agents change it.
 
 ## Requirements
 
-- Pi coding agent
+- Pi coding agent for the panel and tools; [Bun](https://bun.sh) 1.4 or later for the CLI
 - Optional: `dex` on PATH for the Dex adapter
 
 ## Installation
@@ -28,7 +28,7 @@ Until then, install from a local checkout (see [Contributing](CONTRIBUTING.md)).
 
 ## Usage
 
-- Ask the agent to create, list, start, edit, or complete tasks using `todo_task`.
+- Ask the agent to create, list, start, edit, or complete tasks.
 - `/todos [current|project|completed]` selects and displays a view.
 - `/todos export <path> [--global]` exports to todo.txt, without overwriting an existing file.
 - `/todos import <path> [--global]` appends todo.txt lines as records, skipping `aiid:`s already present.
@@ -39,7 +39,7 @@ Until then, install from a local checkout (see [Contributing](CONTRIBUTING.md)).
 - `ctrl+shift+t` collapses or expands the panel.
 - `ctrl+shift+v` cycles views.
 
-Current shows tasks worked on in this session. Newly created top-level tasks remain in the project backlog until started. Tasks are stored as JSONL, one JSON object per task: `id`, `name`, `completed`, `started_at`, and optional `priority` (A-Z), `created` and `completed_date` (YYYY-MM-DD), `description`, `parent`, `result`, `created_by` (agent name, or `@user` for a human) and `human` (GitHub username of the human in the loop; CLI/Pi create default it to you via `AI_DO_USER`, `git config github.user` or `gh`; `AI_DO_AGENT` names the CLI creator) (schema: `Task` in `src/todo.ts`). `+projects`, `@contexts` and other `key:value` tags stay in `name`. Export renders each record as a [todo.txt](https://github.com/todotxt/todo.txt) line, with ai-do fields as `aiid:`, `aistart:`, `aidesc:`, `aiparent:`, `airesult:`, `aiby:` and `aihuman:` tags, so import reads it back. Older `{"todo":"..."}` stores are converted on the next write. Avoid concurrent writers to the same file.
+Current shows tasks worked on in this session. Newly created top-level tasks remain in the project backlog until started. Tasks are stored as JSONL, one JSON object per task: `id`, `name`, `completed`, `started_at`, and optional `priority` (A-Z), `created` and `completed_date` (YYYY-MM-DD), `description`, `parent`, `blocked_by` (ids of tasks that must complete first; local only), `result`, `created_by` (agent name, or `@user` for a human) and `human` (GitHub username of the human in the loop; CLI/Pi create default it to you via `AI_DO_USER`, `git config github.user` or `gh`; `AI_DO_AGENT` names the CLI creator) (schema: `Task` in `src/core/todo.ts`). `+projects`, `@contexts` and other `key:value` tags stay in `name`. Export renders each record as a [todo.txt](https://github.com/todotxt/todo.txt) line, with ai-do fields as `aiid:`, `aistart:`, `aidesc:`, `aiparent:`, `airesult:`, `aiby:` and `aihuman:` tags, so import reads it back. Older `{"todo":"..."}` stores are converted on the next write. 
 
 ## CLI
 
@@ -50,9 +50,10 @@ bun link                 # from a checkout; or: bun add -g ai-do
 ai-do --help
 ai-do create "Write tests" && ai-do list
 ai-do sync               # two-way sync with adapters enabled in config (Dex, Things)
+ai-do mcp                # serve the task tools over MCP (stdio)
 ```
 
-The CLI runs in the current directory. It is trusted if `AI_DO_TRUST=1` is set or the project has an `.ai-do/` (or `.agents/ai-do/`) folder; otherwise it uses the temp store.
+The CLI runs in the current directory. It is trusted if `AI_DO_TRUST=1` is set or the project has an `.ai-do/` (or `.agents/ai-do/`) folder; otherwise it uses the temp store. `AI_DO_AGENT` names the task creator, `AI_DO_USER` sets your GitHub user, and `AI_DO_SESSION` overrides the session id.
 
 ## Supported agents
 
@@ -74,7 +75,7 @@ Non-Pi agents need the `ai-do` CLI on PATH. Build a target with `bun run build:a
 | `global` | `~/.ai-do/projects/<project>.<id>/todos/<project>.todos.jsonl` |
 | `temp` (and untrusted projects) | same layout under `$TMPDIR/ai-do/<session-hash>/.ai-do/`; may be removed by the OS |
 
-On first use ai-do creates the folder with a `config.json`, a `todos/lists.jsonl` index (`id`, `name`, `file`, `created` per todos file) and a starter `Hello World` todo (new permanent stores, and on the first run after install even if temp; otherwise temp stores start empty). Each project's id is stored in its local `config.json` (which stays in the project in both scopes) and keys its record in `~/.ai-do/projects/projects.jsonl` (`id`, `name`, `path`, `scope`, `created`). `scope: "global"` projects keep their store in `~/.ai-do/projects/<name>.<id>/`; `project` scope creates no global folder. `<project>` is the working directory's name.
+On first use ai-do creates the folder with a `config.json`, a `todos/lists.jsonl` index (`id`, `name`, `file`, `created` per todos file) and a starter `Hello World` todo. New permanent stores get the todo, and so does the first run after install even in temp. Other temp stores start empty. Each project's id is stored in its local `config.json` (which stays in the project in both scopes) and keys its record in `~/.ai-do/projects/projects.jsonl` (`id`, `name`, `path`, `scope`, `created`). `scope: "global"` projects keep their store in `~/.ai-do/projects/<name>.<id>/`; `project` scope creates no global folder. `<project>` is the working directory's name.
 
 Adapters sync ai-do's store with other todo apps. Each has its own connect instructions, capabilities and limitations:
 
@@ -93,8 +94,8 @@ Adapters sync ai-do's store with other todo apps. Each has its own connect instr
 - `scope`: `project` (default), `global` or `temp`; read from the global config or `AI_DO_SCOPE`.
 - `file`: explicit todos file, overriding scope. `~/` supported; relative paths resolve from Pi's working directory.
 
-Changing scope or file selects a different store; it does not migrate tasks (use export/import). Invalid config causes an error rather than silently selecting a different store. Run `/reload` after editing config.
+Changing scope or file selects a different store and does not migrate tasks; use export and import. Invalid config raises an error. Run `/reload` after editing config.
 
 ## Development
 
-Tech stack, project structure, local development, and publishing: see [CONTRIBUTING.md](CONTRIBUTING.md).
+Tech stack, project structure, local development and publishing are in [CONTRIBUTING.md](CONTRIBUTING.md).

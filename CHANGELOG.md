@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add `ai-do mcp`: an MCP server over stdio (`src/cli/mcp.ts`) with six tools, `todo_list`, `todo_create`, `todo_edit`, `todo_status`, `todo_link` and `todo_resolve`. The Claude Code plugin registers it; the Codex, opencode and Cursor READMEs show the config.
+
 - Add task attribution: `created_by` and `human` fields (todo.txt `aiby:`/`aihuman:`), `--human` on `create`/`edit`/`list`/`ready`, `AI_DO_AGENT`/`AI_DO_USER`, and `adapters.<name>.human` to sync only one human's tasks.
 - Add `ai-do sync`: syncs every adapter enabled in config; shares `syncAll` (`src/core/adapters/sync-all.ts`) with the Pi extension.
 - Add `ai-do` CLI (`src/cli`) over the shared core: `list`, `ready`, `create`, `start`, `complete`, `edit`, `import`, `export`, `link`, `scope`, `migrate`. Trusted if `AI_DO_TRUST=1` or the project has an `.ai-do/` folder; otherwise it uses the temp store.

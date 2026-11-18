@@ -6,7 +6,7 @@ Syncs ai-do's todo store with [Dex](https://github.com/dcramer/dex) through the 
 
 1. Install `dex` and make sure it is on `PATH` (`dex --version`).
 2. Optional: run `dex init` (global `~/.config/dex/dex.toml`) or add a project `.dex/config.toml` to choose where Dex stores tasks. Without either, ai-do uses temporary per-session Dex storage.
-3. Turn sync on in a ai-do `config.json` (global `~/.ai-do/config.json` or the project's):
+3. Turn sync on in an ai-do `config.json` (global `~/.ai-do/config.json` or the project's):
    ```json
    {"adapters": {"dex": {"sync": true}}}
    ```
@@ -25,7 +25,7 @@ To disconnect, set `"sync": false` or remove the entry. Tasks already synced sta
 | Started | yes | yes |
 | Completed + result | yes | yes |
 
-- Two-way: each list or change in ai-do syncs both ways. Changes made in Dex by other agents are pulled when Dex's storage folder changes (file storage engine only), and before each prompt.
+- Two-way: each list or change in ai-do syncs both ways. ai-do pulls changes that other agents make in Dex when Dex's storage folder changes (file storage engine only) and before each prompt.
 - Conflicts: per field, a change on one side since the last sync is copied across. If both sides changed the same field, ai-do wins.
 - State: links and last-synced copies live in `sync/dex.jsonl` next to the store's `config.json`.
 - Completing in Dex uses `--no-commit --force`.
@@ -36,5 +36,5 @@ To disconnect, set `"sync": false` or remove the entry. Tasks already synced sta
 - Dex cannot un-complete or un-start a task, or change a completed task's result; those changes stay in ai-do only.
 - Clearing a description in ai-do does not clear it in Dex.
 - Not synced: Dex's numeric priority, blockers (`blockedBy`/`blocks`), linked commits, metadata, archived tasks, and GitHub/Shortcut sync.
-- Dex storage outside the file engine (no local folder) is only re-synced on ai-do actions and before each prompt, not live.
-- Sync failures show as a notice and do not block the local change; it retries on the next sync.
+- Dex storage outside the file engine (no local folder) re-syncs only on ai-do actions and before each prompt, not live.
+- A sync failure shows as a notice and does not block the local change. ai-do retries on the next sync.
