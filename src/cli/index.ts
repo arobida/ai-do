@@ -1,4 +1,8 @@
 #!/usr/bin/env bun
+/**
+ * The `dibs` command-line interface. Run `dibs --help` for usage.
+ * @module
+ */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";

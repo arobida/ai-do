@@ -1,9 +1,19 @@
+/**
+ * Core task store for dibs: run task actions against a JSONL todos file.
+ * @example
+ * ```ts
+ * import { runFile } from "jsr:@dibs/dibs";
+ * console.log(await runFile(".dibs/todos/dibs.todos.jsonl", ["list"]));
+ * ```
+ * @module
+ */
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { basename, dirname } from "node:path";
 import { randomBytes, randomUUID } from "node:crypto";
 import { checkName, clean, parseTodo, todoLine, toTask, type Task } from "./todo.ts";
 import { isAlive, withLock } from "./util.ts";
 
+/** Thrown when a task's parent is missing, is the task itself, or is one of its descendants. */
 export class ParentError extends Error {}
 // A parent must exist and must not be the task itself or one of its descendants.
 function checkParent(items: Task[], id: string, parent?: string) {
@@ -15,6 +25,7 @@ function checkParent(items: Task[], id: string, parent?: string) {
 	}
 }
 
+/** Thrown when a blocker is missing, is the task itself, or forms a cycle. */
 export class BlockerError extends Error {}
 // Blockers must exist, not include the task itself, and not lead back to it through their own blockers.
 function checkBlockers(items: Task[], id: string, blockers: string[] = []) {
@@ -32,7 +43,7 @@ const ids = (s?: string) => (s ? s.split(",").map((x) => x.trim()).filter(Boolea
 // Short project-prefixed ids (like Dex/Beads) so agents copy a few characters, not a UUID.
 const prefix = (file: string) => (basename(file).replace(/\.todos\.jsonl$/, "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 4) || "task");
 const newId = (file: string, items: Task[]): string => { for (;;) { const id = `${prefix(file)}-${randomBytes(4).toString("hex").slice(0, 6)}`; if (!items.some((t) => t.id === id)) return id; } };
-// Exact id, else a unique id prefix (with or without the project prefix).
+/** Resolves an exact task id, or a unique id prefix (with or without the project prefix). Throws if none or several match. */
 export function findId(items: Task[], ref: string, file: string): string {
 	if (items.some((t) => t.id === ref)) return ref;
 	const hits = items.filter((t) => t.id.startsWith(ref) || t.id.startsWith(`${prefix(file)}-${ref}`));
@@ -40,7 +51,7 @@ export function findId(items: Task[], ref: string, file: string): string {
 	throw new Error(hits.length ? `Ambiguous task id ${ref}: matches ${hits.map((t) => `${t.id} "${t.name}"`).join(", ")}` : `Task not found: ${ref}`);
 }
 
-// Runs an action (list, ready, export, import, put, create, start, complete, edit, release) against an dibs JSONL todos file.
+/** Runs an action (list, ready, export, import, put, create, start, complete, edit, release) against a dibs JSONL todos file and returns its output. */
 export function runFile(file: string, args: string[]): string | Promise<string> {
 	const [action, value] = args;
 	if (action !== "list" && action !== "export") mkdirSync(dirname(file), { recursive: true });
