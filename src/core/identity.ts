@@ -5,7 +5,7 @@ import { aiDoHome } from "./store.ts";
 
 export const agentName = () => process.env.AI_DO_AGENT || "cli";
 
-// GitHub username of the person at the keyboard: AI_DO_USER, else git config, else gh; cached in <aiDoHome>/user so gh runs at most once. Never throws.
+// GitHub username of the person at the keyboard: AI_DO_USER, else git config, else gh; cached in <aiDoHome>/user so the lookup runs at most once. Never throws.
 export async function ghUser(ctx: Ctx): Promise<string | undefined> {
 	if (process.env.AI_DO_USER) return process.env.AI_DO_USER;
 	const cache = join(aiDoHome(), "user");

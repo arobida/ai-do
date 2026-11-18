@@ -215,7 +215,7 @@ export default function taskPanel(pi: ExtensionAPI) {
 	pi.on("tool_result", async (event, ctx) => {
 		if (event.isError) return;
 		try { if (!settings(toCtx(pi, ctx)).adapters.dex?.sync) return; } catch (error) { if (ctx.hasUI) ctx.ui.notify(`Tasks: ${error}`, "error"); return; }
-		// Only todo_task calls mark tasks as this session's; shell text can't prove what ran, so bash dex calls just refresh.
+		// Only the todo_* tools mark tasks as this session's; shell text can't prove what ran, so bash dex calls just refresh.
 		const command = event.toolName === "bash" ? String(event.input?.command ?? "") : "";
 		if (/\bdex\b/.test(command) || /dex/i.test(event.toolName)) {
 			try { await refresh(ctx); } catch (error) { if (ctx.hasUI) ctx.ui.notify(`Tasks: ${error}`, "error"); }

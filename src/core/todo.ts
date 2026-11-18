@@ -36,12 +36,10 @@ export function toTask(record: any): Task {
 	return record;
 }
 
-// Drops empty optional fields so records stay minimal and stable.
-// Keys are written in schema order so every record reads the same.
+// Drops empty optional fields and writes keys in schema order, so records stay minimal and stable.
 const order = ["id", "name", "completed", "priority", "created", "completed_date", "started_at", "description", "parent", "result", "claimed_by", "created_by", "human", "blocked_by"];
 export const clean = (task: Task): Task => Object.fromEntries(Object.entries(task).sort(([a], [b]) => order.indexOf(a) - order.indexOf(b)).filter(([key, value]) => value !== undefined && (value !== "" || key === "name") && !(Array.isArray(value) && !value.length))) as Task;
 
-// Parses one todo.txt line (import).
 export function parseTodo(line: string): Task {
 	const meta: Record<string, string> = {};
 	let body = line.replace(/(^|\s)pi(id|start|desc|parent|result):/g, "$1ai$2:").replace(/(?:^|\s)(aiid|aistart|aidesc|aiparent|airesult|aiby|aihuman|pri):([^\s:]+)/g, (match, key, value) => {

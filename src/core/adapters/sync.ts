@@ -24,8 +24,8 @@ const toLink = (r: Record<string, unknown>): Link => {
 const fields = ["name", "description", "completed", "started_at", "result", "parent"] as const;
 
 // Two-way sync of the ai-do todos file with one adapter. Per field: only one side changed -> copy it; both -> ai-do wins.
-// With `human`, only tasks whose human matches take part; the rest are left untouched (deletions are never propagated, so they just stay unlinked).
-// Deletions are never propagated: a task missing on one side just stays unlinked-but-remembered.
+// With `human`, only tasks whose human matches take part; the rest are left untouched.
+// Deletions are never propagated: a task missing on one side just stays unlinked.
 export async function sync(file: string, base: string, adapter: Adapter, human?: string): Promise<void> {
 	const linksFile = join(base, "sync", `${adapter.name}.jsonl`);
 	mkdirSync(join(base, "sync"), { recursive: true });

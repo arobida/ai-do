@@ -7,7 +7,7 @@ import { home, readJsonl } from "./util.ts";
 import { findId, runFile } from "./tasks.ts";
 
 const { version } = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
-// Pinned to this install's version so editors validate against the options it actually supports; tag v<version> on release.
+// Pinned to this install's version so editors validate against the options it supports. Tag v<version> on release.
 export const schemaUrl = `https://raw.githubusercontent.com/arobida/ai-do/v${version}/schema.json`;
 
 // JSONC: drops comments, then trailing commas (second pass catches a comma that sat before a comment); strings are kept as-is.
@@ -21,7 +21,6 @@ export function parseJsonc(text: string, path: string): any {
 }
 
 export const writeConfig = (dir: string, config: object) => writeFileSync(join(dir, "config.json"), JSON.stringify({ $schema: schemaUrl, ...config }, null, 2) + "\n");
-// Creates config.json unless it exists.
 const ensureConfig = (dir: string) => { readConfig(dir); if (!existsSync(join(dir, "config.json"))) writeConfig(dir, {}); };
 
 // <dir>/config.json (JSONC). Keeps "$schema" pointed at this version.
@@ -74,7 +73,7 @@ export const localDir = (cwd: string) => existsSync(join(cwd, ".agents", "ai-do"
 export const globalDir = (s: { name: string; id: string }) => join(aiDoHome(), "projects", `${s.name}.${s.id}`);
 
 // The project's id lives in its local config.json (kept in place across scopes) and keys its projects.jsonl record.
-// Scope: env AI_DO_SCOPE > the project's record scope > global config.json > "project".
+// Scope: forceGlobal > env AI_DO_SCOPE > the project's record scope > global config.json > "project".
 export function settings(ctx: Ctx, forceGlobal = false): Settings {
 	const root = aiDoHome(), cwd = resolve(ctx.cwd), trusted = ctx.trusted();
 	if (forceGlobal && !trusted) throw new Error("--global requires a trusted project");
@@ -85,7 +84,7 @@ export function settings(ctx: Ctx, forceGlobal = false): Settings {
 	const scope = forceGlobal ? "global" : process.env.AI_DO_SCOPE || record?.scope || globalConfig.scope || "project";
 	if (!["project", "global", "temp"].includes(scope)) throw new Error(`Invalid ai-do scope: ${scope}`);
 	const name = record?.name ?? basename(cwd);
-	// Untrusted projects keep the temporary session file so ai-do never writes into them.
+	// Untrusted projects use a temp store so ai-do never writes into them.
 	const temp = !trusted && !forceGlobal || scope === "temp";
 	// Temp stores use the same layout as project stores, in a per-session folder.
 	const base = temp ? join(tmpdir(), "ai-do", createHash("sha256").update(ctx.sessionId()).digest("hex"), ".ai-do") : scope === "global" ? globalDir({ name, id }) : local;

@@ -26,7 +26,7 @@ test("create/list/start/edit/complete/export/import round trip", () => {
 	expect(exported).toContain("Write more docs");
 	const file = join(cwd, "out.txt");
 	expect(run(cwd, "export", file).code).toBe(0);
-	expect(run(cwd, "export", file).code).toBe(1); // refuses to overwrite
+	expect(run(cwd, "export", file).code).toBe(1);
 	const other = mkdtempSync(join(tmpdir(), "ai-do-cli-"));
 	expect(run(other, "import", file).out).toContain("Imported 2");
 	expect(run(other, "list").out).toContain("Write more docs");

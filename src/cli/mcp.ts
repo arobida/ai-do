@@ -8,7 +8,6 @@ import { runFile } from "../core/tasks.ts";
 import { syncAll } from "../core/adapters/sync-all.ts";
 import type { Ctx } from "../core/ctx.ts";
 
-// `ai-do mcp`: serves the task tools over stdio, using the CLI's ctx.
 export async function serveMcp(ctx: Ctx) {
 const claim = () => `${ctx.sessionId()}:${process.pid}`;
 

@@ -40,7 +40,7 @@ export function findId(items: Task[], ref: string, file: string): string {
 	throw new Error(hits.length ? `Ambiguous task id ${ref}: matches ${hits.map((t) => `${t.id} "${t.name}"`).join(", ")}` : `Task not found: ${ref}`);
 }
 
-// Runs a list/export/import/create/start/complete/edit action against a ai-do JSONL todos file.
+// Runs an action (list, ready, export, import, put, create, start, complete, edit, release) against an ai-do JSONL todos file.
 export function runFile(file: string, args: string[]): string | Promise<string> {
 	const [action, value] = args;
 	if (action !== "list" && action !== "export") mkdirSync(dirname(file), { recursive: true });
