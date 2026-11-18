@@ -10,7 +10,8 @@ for (const dir of dirs) {
 	else await $`bun publish --access public`.cwd(dir).nothrow(); // exits 1 even after a browser-approved publish
 }
 
-for (const dir of dirs) {
+// Only core goes to JSR: Pi and opencode install plugins from npm, and JSR can't resolve their host-provided imports.
+for (const dir of ["."]) {
 	const { name, version } = await Bun.file(`${dir}/jsr.json`).json();
 	const meta = await fetch(`https://jsr.io/${name}/meta.json`);
 	const versions = meta.ok ? (await meta.json()).versions ?? {} : {};
