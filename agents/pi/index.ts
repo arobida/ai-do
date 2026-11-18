@@ -3,16 +3,16 @@ import { Text, truncateToWidth, type TUI } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { existsSync, mkdirSync, watch, type FSWatcher, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { checkName, type Task } from "../../src/core/todo.ts";
-import { home } from "../../src/core/util.ts";
-import { link, migrate, resolveLink, setScope, settings, storeFile } from "../../src/core/store.ts";
-import { runFile } from "../../src/core/tasks.ts";
-import { dexWatchDirs } from "../../src/core/adapters/dex/index.ts";
-import { ghUser } from "../../src/core/identity.ts";
-import { syncAll as syncAllCore } from "../../src/core/adapters/sync-all.ts";
-import { saveThingsToken } from "../../src/core/adapters/things/index.ts";
-import type { Ctx } from "../../src/core/ctx.ts";
-import { glyph, panel, shown as shownCore, views, type View } from "../../src/core/panel.ts";
+import { checkName, type Task } from "@dibs.ai/dibs/core/todo.ts";
+import { home } from "@dibs.ai/dibs/core/util.ts";
+import { link, migrate, resolveLink, setScope, settings, storeFile } from "@dibs.ai/dibs/core/store.ts";
+import { runFile } from "@dibs.ai/dibs/core/tasks.ts";
+import { dexWatchDirs } from "@dibs.ai/dibs/core/adapters/dex/index.ts";
+import { ghUser } from "@dibs.ai/dibs/core/identity.ts";
+import { syncAll as syncAllCore } from "@dibs.ai/dibs/core/adapters/sync-all.ts";
+import { saveThingsToken } from "@dibs.ai/dibs/core/adapters/things/index.ts";
+import type { Ctx } from "@dibs.ai/dibs/core/ctx.ts";
+import { glyph, panel, shown as shownCore, views, type View } from "@dibs.ai/dibs/core/panel.ts";
 
 const toCtx = (pi: ExtensionAPI, ctx: ExtensionContext): Ctx => ({ cwd: ctx.cwd, trusted: () => ctx.isProjectTrusted(), sessionId: () => ctx.sessionManager.getSessionId(), exec: (cmd, args, opts) => pi.exec(cmd, args, opts) });
 
@@ -40,7 +40,7 @@ export default function taskPanel(pi: ExtensionAPI) {
 		if (!["list", "ready", "export"].includes(args[0])) await syncAll(ctx, global);
 		return out;
 	}
-	// Adapters with sync on mirror the ai-do store; runs are chained so two syncs never interleave.
+	// Adapters with sync on mirror the dibs store; runs are chained so two syncs never interleave.
 	let syncing: Promise<void> = Promise.resolve();
 	function syncAll(ctx: ExtensionContext, global = false): Promise<void> {
 		const s = settings(toCtx(pi, ctx), global), file = storeFile(toCtx(pi, ctx), s);
@@ -141,11 +141,11 @@ export default function taskPanel(pi: ExtensionAPI) {
 		result: Type.Optional(Type.String({ description: "Only with completed: what was done (default: Completed)" })),
 		force: Type.Optional(Type.Boolean({ description: "Override another live session's claim" })),
 	}));
-	tool("todo_link", "Get a Markdown aido:// link to a task, for use in notes or other projects.", Type.Object({ id: Id }));
-	tool("todo_resolve", "Read the task behind a aido:// link, from any project.", Type.Object({ url: Type.String({ description: "A aido://<project-id>/<task-id> link" }) }));
+	tool("todo_link", "Get a Markdown dibs:// link to a task, for use in notes or other projects.", Type.Object({ id: Id }));
+	tool("todo_resolve", "Read the task behind a dibs:// link, from any project.", Type.Object({ url: Type.String({ description: "A dibs://<project-id>/<task-id> link" }) }));
 
 	pi.registerCommand("todos", {
-		description: "Show tasks or move todo.txt: /todos [current|project|completed|export <path>|import <path>|migrate .ai-do|.agents/ai-do|scope project|global|connect things <token>] [--global]", 
+		description: "Show tasks or move todo.txt: /todos [current|project|completed|export <path>|import <path>|migrate .dibs|.agents/dibs|scope project|global|connect things <token>] [--global]", 
 		async handler(args, ctx) {
 			try {
 				let want = String(args ?? "").trim();
@@ -153,7 +153,7 @@ export default function taskPanel(pi: ExtensionAPI) {
 				if (global) want = want.slice(0, -9).trim();
 				const conn = want.match(/^connect\s+things\s+(\S+)$/);
 				if (conn) { ctx.ui.notify(saveThingsToken(conn[1]), "info"); await refresh(ctx); return; }
-				const mig = want.match(/^migrate\s+(\.ai-do|\.agents\/ai-do)$/);
+				const mig = want.match(/^migrate\s+(\.dibs|\.agents\/dibs)$/);
 				const sc = want.match(/^scope\s+(project|global)$/);
 				if (mig || sc) { ctx.ui.notify(mig ? migrate(toCtx(pi, ctx), mig[1]) : setScope(toCtx(pi, ctx), sc![1]), "info"); void watchStore(ctx); await refresh(ctx); return; }
 				const io = want.match(/^(export|import)\s+(.+)$/);

@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "ai-do Dex adapter",
+  "title": "dibs Dex adapter",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "sync": {
       "type": "boolean",
-      "description": "Two-way sync ai-do todos with Dex tasks."
+      "description": "Two-way sync dibs todos with Dex tasks."
     },
     "human": {
       "type": "string",

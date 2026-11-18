@@ -35,7 +35,7 @@ test("names that would read back as markers without a created date are refused",
 test("readJsonl drops only an unterminated torn last line", async () => {
 	const { readJsonl } = await import("../src/core/util.ts");
 	const { mkdtempSync, writeFileSync } = await import("node:fs");
-	const dir = mkdtempSync(`${require("node:os").tmpdir()}/aido-`);
+	const dir = mkdtempSync(`${require("node:os").tmpdir()}/dibs-`);
 	writeFileSync(`${dir}/torn.jsonl`, '{"a":1}\n{"b":');
 	expect(readJsonl(`${dir}/torn.jsonl`, (r) => r)).toEqual([{ a: 1 }]);
 	writeFileSync(`${dir}/bad.jsonl`, '{"a":1}\n{"b":\n');
@@ -113,6 +113,3 @@ test("short prefixed ids, prefix lookup, list query", async () => {
 	await expect(rf(file, ["start", "zzz"])).rejects.toThrow("Task not found: zzz");
 });
 
-test("import accepts old pi* tags", () => {
-	expect(parseTodo("Old thing piid:abc pistart:2024-01-01 pidesc:hi")).toMatchObject({ id: "abc", name: "Old thing", started_at: "2024-01-01", description: "hi" });
-});

@@ -75,10 +75,10 @@ Sources: https://opencode.ai/docs/build/plugins, https://opencode.ai/docs/build/
 
 ## Summary
 
-| Agent | Closest surface | Live-updating? | Installable by plugin automatically? | Recommendation for an ai-do task list |
+| Agent | Closest surface | Live-updating? | Installable by plugin automatically? | Recommendation for an dibs task list |
 |---|---|---|---|---|
 | Pi (baseline) | `ctx.ui.setWidget(..., { placement: "aboveEditor" })` | Yes | Yes (extension) | Keep as is. |
-| Claude Code | Mod band `AbovePrompt` (or a `Pane`) | Yes, `$.ui.invalidate('ui.render')` | Yes, ships in the plugin (v2.1.287+, API may change) | Ship a mod in the ai-do plugin that draws the task list above the prompt. Fall back to a documented `statusLine` script the user opts into. |
+| Claude Code | Mod band `AbovePrompt` (or a `Pane`) | Yes, `$.ui.invalidate('ui.render')` | Yes, ships in the plugin (v2.1.287+, API may change) | Ship a mod in the dibs plugin that draws the task list above the prompt. Fall back to a documented `statusLine` script the user opts into. |
 | Codex CLI | Transcript output; fixed `tui.status_line` items | No | No | Print the list from the MCP tool result. Do not attempt a widget. |
 | Cursor IDE | VS Code `TreeView` in the sidebar | Yes | No, separate extension install | Optional VS Code extension with a tree view if demand exists; otherwise rely on tool output. |
 | cursor-agent CLI | Transcript output | No | No | Print the list from the MCP tool result. |

@@ -3,10 +3,10 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Panel, View } from '../types'
 
-const mine = atom({ plugin: 'ai-do', key: 'mine' } as const, [] as string[])
-const view = atom({ plugin: 'ai-do', key: 'view' } as const, 'current' as View)
-const collapsed = atom({ plugin: 'ai-do', key: 'collapsed' } as const, false)
-const panel = atom({ plugin: 'ai-do', key: 'panel' } as const, null as Panel | null)
+const mine = atom({ plugin: 'dibs', key: 'mine' } as const, [] as string[])
+const view = atom({ plugin: 'dibs', key: 'view' } as const, 'current' as View)
+const collapsed = atom({ plugin: 'dibs', key: 'collapsed' } as const, false)
+const panel = atom({ plugin: 'dibs', key: 'panel' } as const, null as Panel | null)
 
 const views: View[] = ['current', 'project', 'completed']
 const glyph = { done: '✓', started: '◐', open: '○' } as const
@@ -15,7 +15,7 @@ const color = { done: 'green', started: 'yellow', open: undefined } as const
 let last = ''
 let path = ''
 
-// The hooks worker may lack the user's PATH (e.g. ~/.bun/bin for ai-do and bun), so read it from their shell once.
+// The hooks worker may lack the user's PATH (e.g. ~/.bun/bin for dibs and bun), so read it from their shell once.
 async function userPath($: EngineInterface) {
   if (path) return path
   const r = await $.process.run(['/bin/sh', '-c', '${SHELL:-/bin/sh} -lic \'printf "\\n%s" "$PATH"\' 2>/dev/null'])
@@ -26,10 +26,10 @@ async function userPath($: EngineInterface) {
 async function refresh($: EngineInterface) {
   const v = await read($, view)
   const ids = await read($, mine)
-  const argv = ['ai-do', 'panel', v, '--json', ...(ids.length ? ['--mine', ids.join(',')] : [])]
+  const argv = ['dibs', 'panel', v, '--json', ...(ids.length ? ['--mine', ids.join(',')] : [])]
   try {
     const { exitCode, stdout } = await $.process.run((p => (p ? ['/usr/bin/env', `PATH=${p}`, ...argv] : argv))(await userPath($)))
-    if (exitCode !== 0) throw new Error('ai-do failed')
+    if (exitCode !== 0) throw new Error('dibs failed')
     if (stdout === last) return
     const p = JSON.parse(stdout) as Panel
     last = stdout
@@ -55,13 +55,13 @@ export const register: Register = on => {
   on('tool.call', async ($, e, next) => {
     const name: string = e.tool
     const input = e as Record<string, unknown>
-    const touches = /ai-do.*todo_(create|edit|status)$/.test(name)
+    const touches = /dibs.*todo_(create|edit|status)$/.test(name)
     const id = typeof input.id === 'string' || typeof input.id === 'number' ? String(input.id) : null
     if (touches && id) await update($, mine, m => (m.includes(id) ? m : [...m, id]))
 
     const res = await next(e)
 
-    if (/todo_create$/.test(name) && /ai-do/.test(name) && typeof input.parent !== 'undefined') {
+    if (/todo_create$/.test(name) && /dibs/.test(name) && typeof input.parent !== 'undefined') {
       const ids = await read($, mine)
       const text = 'text' in res && typeof res.text === 'string' ? res.text : JSON.stringify(res)
       const m = /Created task (\S+)/.exec(text)

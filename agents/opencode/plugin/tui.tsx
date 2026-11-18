@@ -1,5 +1,5 @@
 /** @jsxImportSource @opentui/solid */
-// Live ai-do task panel for opencode. API per https://opencode.ai/docs/build/plugins/cli
+// Live dibs task panel for opencode. API per https://opencode.ai/docs/build/plugins/cli
 import { Plugin } from "@opencode/plugin/tui"
 import { createSignal, For, Show, onCleanup } from "solid-js"
 import { execFile } from "node:child_process"
@@ -12,7 +12,7 @@ const GLYPH = { done: "✓", started: "◐", open: "○" }
 const COLOR = { done: "#5faf5f", started: "#d7af00", open: "#808080" }
 
 export default Plugin.define({
-	id: "ai-do.panel",
+	id: "dibs.panel",
 	setup(context) {
 		const [view, setView] = createSignal<(typeof views)[number]>("current")
 		const [collapsed, setCollapsed] = createSignal(false)
@@ -23,7 +23,7 @@ export default Plugin.define({
 
 		const refresh = () => {
 			const args = ["panel", view(), "--json", ...(mine.size ? ["--mine", [...mine].join(",")] : [])]
-			execFile("ai-do", args, { cwd }, (err, out) => {
+			execFile("dibs", args, { cwd }, (err, out) => {
 				if (err) return setPanel(null) // fail silently
 				try { setPanel(JSON.parse(out)) } catch { setPanel(null) }
 			})
@@ -56,10 +56,10 @@ export default Plugin.define({
 		context.keymap.layer(() => ({
 			mode: "global", priority: 10,
 			commands: [
-				{ id: "ai-do.view", title: "Cycle task view", bind: "ctrl+shift+v", palette: true, slash: { name: "tasks-view" }, run: cycle },
-				{ id: "ai-do.toggle", title: "Toggle task panel", bind: "ctrl+shift+t", palette: true, slash: { name: "tasks-toggle" }, run: toggle },
+				{ id: "dibs.view", title: "Cycle task view", bind: "ctrl+shift+v", palette: true, slash: { name: "tasks-view" }, run: cycle },
+				{ id: "dibs.toggle", title: "Toggle task panel", bind: "ctrl+shift+t", palette: true, slash: { name: "tasks-toggle" }, run: toggle },
 			],
-			bindings: ["ai-do.view", "ai-do.toggle"],
+			bindings: ["dibs.view", "dibs.toggle"],
 		}))
 
 		context.ui.slot({

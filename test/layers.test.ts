@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-const ts = (dir: string): string[] => readdirSync(dir).flatMap((n) => { const p = join(dir, n); return statSync(p).isDirectory() ? ts(p) : p.endsWith(".ts") ? [p] : []; });
+const ts = (dir: string): string[] => readdirSync(dir).filter((n) => n !== "node_modules").flatMap((n) => { const p = join(dir, n); return statSync(p).isDirectory() ? ts(p) : p.endsWith(".ts") ? [p] : []; });
 const imports = (f: string) => [...readFileSync(f, "utf8").matchAll(/(?:from|import\()\s*["']([^"']+)["']/g)].map((m) => m[1]);
 
 test("src/core imports no host, agent or CLI code", () => {

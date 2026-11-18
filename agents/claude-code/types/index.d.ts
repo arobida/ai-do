@@ -4,6 +4,6 @@ export type Panel = { title: string; rows: PanelRow[]; more: number; empty: stri
 
 declare module 'claude-code' {
   interface PluginState {
-    'ai-do': { mine: string[]; view: View; collapsed: boolean; panel: Panel | null }
+    'dibs': { mine: string[]; view: View; collapsed: boolean; panel: Panel | null }
   }
 }

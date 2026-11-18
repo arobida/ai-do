@@ -2,15 +2,15 @@
 
 ## Unreleased
 
-- Add `ai-do mcp`: an MCP server over stdio (`src/cli/mcp.ts`) with six tools, `todo_list`, `todo_create`, `todo_edit`, `todo_status`, `todo_link` and `todo_resolve`. The Claude Code plugin registers it; the Codex, opencode and Cursor READMEs show the config.
+- Add `dibs mcp`: an MCP server over stdio (`src/cli/mcp.ts`) with six tools, `todo_list`, `todo_create`, `todo_edit`, `todo_status`, `todo_link` and `todo_resolve`. The Claude Code plugin registers it; the Codex, opencode and Cursor READMEs show the config.
 
-- Add task attribution: `created_by` and `human` fields (todo.txt `aiby:`/`aihuman:`), `--human` on `create`/`edit`/`list`/`ready`, `AI_DO_AGENT`/`AI_DO_USER`, and `adapters.<name>.human` to sync only one human's tasks.
-- Add `ai-do sync`: syncs every adapter enabled in config; shares `syncAll` (`src/core/adapters/sync-all.ts`) with the Pi extension.
-- Add `ai-do` CLI (`src/cli`) over the shared core: `list`, `ready`, `create`, `start`, `complete`, `edit`, `import`, `export`, `link`, `scope`, `migrate`. Trusted if `AI_DO_TRUST=1` or the project has an `.ai-do/` folder; otherwise it uses the temp store.
+- Add task attribution: `created_by` and `human` fields (todo.txt `dibsby:`/`dibshuman:`), `--human` on `create`/`edit`/`list`/`ready`, `DIBS_AGENT`/`DIBS_USER`, and `adapters.<name>.human` to sync only one human's tasks.
+- Add `dibs sync`: syncs every adapter enabled in config; shares `syncAll` (`src/core/adapters/sync-all.ts`) with the Pi extension.
+- Add `dibs` CLI (`src/cli`) over the shared core: `list`, `ready`, `create`, `start`, `complete`, `edit`, `import`, `export`, `link`, `scope`, `migrate`. Trusted if `DIBS_TRUST=1` or the project has an `.dibs/` folder; otherwise it uses the temp store.
 - Split code into layers: `src/core` (shared, host-free), `src/cli`, `agents/shared` (skill and assets reused by agents), and `agents/<name>` (Pi extension, Claude Code plugin, Codex, opencode and Cursor integrations).
 - Add `bun run build:agent <name>`: writes `dist/<name>/` from `agents/shared/`, then `agents/<name>/` on top, so an agent file at the same path replaces the shared one.
-- Add Claude Code, Codex, opencode and Cursor integrations shipping the `ai-do` skill, which shells out to the CLI.
-- Breaking: rename pi-do to ai-do: package `ai-do`, folders `.ai-do/` and `~/.ai-do/`, env vars `AI_DO_*`, todo.txt tags `aiid:`/`aistart:`/`aidesc:`/`aiparent:`/`airesult:`, `aido://` links. An existing `.pi-do/` or `~/.pi-do/` is still used when the new folder is missing, and import still reads the old `pi*:` tags.
+- Add Claude Code, Codex, opencode and Cursor integrations shipping the `dibs` skill, which shells out to the CLI.
+- Breaking: rename pi-do to dibs: package `dibs`, folders `.dibs/` and `~/.dibs/`, env vars `DIBS_*`, todo.txt tags `dibsid:`/`dibsstart:`/`dibsdesc:`/`dibsparent:`/`dibsresult:`, `dibs://` links. An existing `.pi-do/` or `~/.pi-do/` is still used when the new folder is missing, and import still reads the old `pi*:` tags.
 - Config is now `config.json` (JSONC) with a `$schema` pinned to the installed version (`schema.json`, plus `src/adapters/<name>/<name>.schema.json` per adapter) for editor autocomplete and validation. `config.jsonl` files are converted on first read.
 - Add Things 3 adapter (macOS): each pi-do project syncs with a Things project of the same name; two-way sync of name, notes and completion via the Things URL scheme; `/todos connect things <token>` stores the auth token.
 - Replace backends with adapters: the pi-do file store always holds tasks; Dex becomes an adapter with two-way `sync` (`"adapters": {"dex": {"sync": true}}`). `backend` config and `PI_DO_BACKEND` are removed.

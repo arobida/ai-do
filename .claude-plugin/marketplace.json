@@ -1,15 +1,15 @@
 {
-  "name": "ai-do",
-  "description": "ai-do task tracking skill for Claude Code.",
+  "name": "dibs",
+  "description": "dibs task tracking skill for Claude Code.",
   "owner": {
     "name": "arobida",
     "url": "https://github.com/arobida"
   },
   "plugins": [
     {
-      "name": "ai-do",
+      "name": "dibs",
       "version": "0.1.0",
-      "description": "Track multi-step work as tasks with the ai-do CLI (skill for Claude Code).",
+      "description": "Track multi-step work as tasks with the dibs CLI (skill for Claude Code).",
       "license": "MIT",
       "author": {
         "name": "arobida",

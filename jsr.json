@@ -1,0 +1,16 @@
+{
+  "name": "@dibs/dibs",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./src/core/tasks.ts",
+    "./cli": "./src/cli/index.ts"
+  },
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "README.md",
+      "CHANGELOG.md",
+      "schema.json"
+    ]
+  }
+}

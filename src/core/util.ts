@@ -32,7 +32,7 @@ export async function withLock<T>(file: string, fn: () => T | Promise<T>, tries 
 					continue;
 				}
 			} catch {}
-			if (i >= tries) throw new Error(`Task file is locked: ${lock} (held by pid ${pid ?? "unknown"}). If that pid is not a ai-do process, delete the file.`);
+			if (i >= tries) throw new Error(`Task file is locked: ${lock} (held by pid ${pid ?? "unknown"}). If that pid is not a dibs process, delete the file.`);
 			await new Promise((r) => setTimeout(r, 25));
 		}
 	}

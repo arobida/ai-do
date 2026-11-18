@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 import { readJsonl, withLock } from "../util.ts";
 import { ParentError, runFile } from "../tasks.ts";
 
-// An external todo app. Tasks use ai-do's shape; ids are the app's own.
+// An external todo app. Tasks use dibs's shape; ids are the app's own.
 export interface Adapter {
 	name: string;
 	// Fields the app can hold; others are neither pushed nor pulled. Default: all.
@@ -23,7 +23,7 @@ const toLink = (r: Record<string, unknown>): Link => {
 };
 const fields = ["name", "description", "completed", "started_at", "result", "parent"] as const;
 
-// Two-way sync of the ai-do todos file with one adapter. Per field: only one side changed -> copy it; both -> ai-do wins.
+// Two-way sync of the dibs todos file with one adapter. Per field: only one side changed -> copy it; both -> dibs wins.
 // With `human`, only tasks whose human matches take part; the rest are left untouched.
 // Deletions are never propagated: a task missing on one side just stays unlinked.
 export async function sync(file: string, base: string, adapter: Adapter, human?: string): Promise<void> {

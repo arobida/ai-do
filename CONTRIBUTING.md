@@ -1,4 +1,4 @@
-# Contributing to ai-do
+# Contributing to dibs
 
 Issues and pull requests are welcome. Keep changes small and covered by tests.
 
@@ -16,10 +16,10 @@ src/core/todo.ts        Task type and todo.txt line parse/format/validation
 src/core/store.ts       Settings, scopes, store paths, project registry, migrate/scope moves
 src/core/identity.ts    Agent name and GitHub user resolution
 src/core/util.ts        Shared helpers: ~ expansion, file lock, JSONL reader
-src/core/tasks.ts       Actions on the ai-do JSONL todos file (the one store)
+src/core/tasks.ts       Actions on the dibs JSONL todos file (the one store)
 src/core/ctx.ts         Ctx: host-neutral cwd/trust/session/exec
-src/cli/index.ts        ai-do CLI
-src/cli/mcp.ts          ai-do mcp: task tools over MCP (stdio)
+src/cli/index.ts        dibs CLI
+src/cli/mcp.ts          dibs mcp: task tools over MCP (stdio)
 agents/shared/          Shared skills/hooks; agents/<name>/ overrides same paths
 agents/<name>/          Per-agent integration (pi, claude-code, codex, opencode, cursor)
 scripts/build-agent.ts  Builds dist/<name> = shared + agent overrides
@@ -37,7 +37,7 @@ CHANGELOG.md            Release notes
 bun install
 bun test
 bun run pack:check
-pi install "$PWD"
+pi install "$PWD/agents/pi"
 ```
 
 Run `/reload` in Pi after source changes. Pi loads `agents/pi/index.ts` directly. Install this package once, and remove any standalone `dex-panel.ts` copy first.
@@ -50,4 +50,4 @@ The package is MIT licensed (see `LICENSE`), and contributions fall under the sa
 
 The package.json has the Pi manifest and the `pi-package` keyword. Before the first release, confirm npm name availability (or choose a scope), add repository metadata, and review the tarball with `bun run pack:check`. Then run `bun publish`. Nothing publishes automatically.
 
-To release, run `bun pm version <patch|minor|major>` and `git push --follow-tags`, then `bun publish`. The version command bumps `package.json` and creates the `v<version>` git tag. Configs point their `$schema` at `https://raw.githubusercontent.com/arobida/ai-do/v<version>/schema.json` (built from `package.json` in `src/core/store.ts`), so that URL returns 404 until the tag is pushed.
+To release, run `bun pm version <patch|minor|major>` and `git push --follow-tags`, then `bun publish`. The version command bumps `package.json` and creates the `v<version>` git tag. Configs point their `$schema` at `https://raw.githubusercontent.com/arobida/dibs/v<version>/schema.json` (built from `package.json` in `src/core/store.ts`), so that URL returns 404 until the tag is pushed.

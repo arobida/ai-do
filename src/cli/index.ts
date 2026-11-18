@@ -11,7 +11,7 @@ import { syncAll } from "../core/adapters/sync-all.ts";
 import type { Ctx } from "../core/ctx.ts";
 import { panel, panelText, views, type View } from "../core/panel.ts";
 
-const usage = `usage: ai-do [--global] [--json] <command>
+const usage = `usage: dibs [--global] [--json] <command>
   list [--query q] [--human u|me] | ready [--human u|me]
   create <name> [--description d] [--parent id] [--blocked-by a,b] [--human u]
   start <id> | complete <id> [--result r]
@@ -21,14 +21,14 @@ const usage = `usage: ai-do [--global] [--json] <command>
   link <id> | resolve <url>
   panel [current|project|completed] [--mine a,b]   task panel text (--json: rows)
   mcp                       serve the task tools over MCP (stdio)
-  scope project|global | migrate .ai-do|.agents/ai-do
-env: AI_DO_AGENT names the creator; AI_DO_USER sets your GitHub user; AI_DO_TRUST=1 trusts cwd; AI_DO_SESSION overrides the session id`;
+  scope project|global | migrate .dibs|.agents/dibs
+env: DIBS_AGENT names the creator; DIBS_USER sets your GitHub user; DIBS_TRUST=1 trusts cwd; DIBS_SESSION overrides the session id`;
 
 const cwd = process.cwd();
 const ctx: Ctx = {
 	cwd,
-	trusted: () => process.env.AI_DO_TRUST === "1" || existsSync(`${cwd}/.ai-do`) || existsSync(`${cwd}/.agents/ai-do`),
-	sessionId: () => process.env.AI_DO_SESSION ?? String(process.ppid),
+	trusted: () => process.env.DIBS_TRUST === "1" || existsSync(`${cwd}/.dibs`) || existsSync(`${cwd}/.agents/dibs`),
+	sessionId: () => process.env.DIBS_SESSION ?? String(process.ppid),
 	exec: async (cmd, args, opts) => {
 		const p = Bun.spawn([cmd, ...args], { cwd: opts?.cwd ?? cwd, stdout: "pipe", stderr: "pipe", signal: opts?.signal });
 		const [stdout, stderr, code] = await Promise.all([new Response(p.stdout).text(), new Response(p.stderr).text(), p.exited]);
@@ -65,7 +65,7 @@ try {
 	else {
 		const opt = (k: string, flag = k) => v[k as "name"] === undefined ? [] : [`--${flag}`, v[k as "name"]!];
 		let args: string[];
-		const who = v.human === "me" ? await ghUser(ctx) ?? (() => { throw new Error("Cannot resolve --human me: set AI_DO_USER or git config github.user"); })() : v.human;
+		const who = v.human === "me" ? await ghUser(ctx) ?? (() => { throw new Error("Cannot resolve --human me: set DIBS_USER or git config github.user"); })() : v.human;
 		if (cmd === "list") args = ["list", ...opt("query"), ...(who === undefined ? [] : ["--human", who])];
 		else if (cmd === "ready") args = ["ready", ...(who === undefined ? [] : ["--human", who])];
 		else if (cmd === "create") { checkName(need()); args = ["create", arg, ...opt("description"), ...opt("parent"), ...opt("blocked-by"), "--created-by", agentName(), "--human", v.human ?? await ghUser(ctx) ?? ""]; }

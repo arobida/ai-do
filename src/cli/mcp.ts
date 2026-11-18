@@ -43,7 +43,7 @@ async function act(action: string, p: Record<string, any>): Promise<string> {
 }
 
 const Id = z.string().describe("Task id, or any unique prefix (e.g. a1b2c3 for proj-a1b2c3)");
-const server = new McpServer({ name: "ai-do", version: "0.1.0" });
+const server = new McpServer({ name: "dibs", version: "0.1.0" });
 const tool = (name: string, description: string, inputSchema: z.ZodRawShape) => server.registerTool(name, { description, inputSchema }, async (params: any) => {
 	try { return { content: [{ type: "text" as const, text: await act(name.slice(5), { ...params }) }] }; }
 	catch (e: any) { return { content: [{ type: "text" as const, text: e.message ?? String(e) }], isError: true }; }
@@ -72,8 +72,8 @@ tool("todo_status", "Start or complete a task. Starting claims it for this sessi
 	result: z.string().optional().describe("Only with completed: what was done (default: Completed)"),
 	force: z.boolean().optional().describe("Override another live session's claim"),
 });
-tool("todo_link", "Get a Markdown aido:// link to a task, for use in notes or other projects.", { id: Id });
-tool("todo_resolve", "Read the task behind a aido:// link, from any project.", { url: z.string().describe("A aido://<project-id>/<task-id> link") });
+tool("todo_link", "Get a Markdown dibs:// link to a task, for use in notes or other projects.", { id: Id });
+tool("todo_resolve", "Read the task behind a dibs:// link, from any project.", { url: z.string().describe("A dibs://<project-id>/<task-id> link") });
 
 await server.connect(new StdioServerTransport());
 }

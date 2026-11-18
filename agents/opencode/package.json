@@ -1,7 +1,34 @@
 {
-  "name": "ai-do-opencode",
-  "private": true,
+  "name": "@dibs.ai/opencode",
+  "version": "0.1.0",
+  "description": "opencode TUI plugin for dibs: task panel.",
   "type": "module",
-  "exports": { "./tui": "./plugin/tui.tsx" },
-  "peerDependencies": { "@opencode/plugin": "latest", "@opentui/core": ">=0.6.6", "@opentui/solid": ">=0.6.6", "solid-js": ">=1.9.0" }
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "dibs",
+    "coding-agent",
+    "task-manager"
+  ],
+  "exports": {
+    "./tui": "./plugin/tui.tsx"
+  },
+  "files": [
+    "plugin/"
+  ],
+  "peerDependencies": {
+    "@opencode/plugin": "latest",
+    "@opentui/core": ">=0.6.6",
+    "@opentui/solid": ">=0.6.6",
+    "solid-js": ">=1.9.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arobida/dibs.git",
+    "directory": "agents/opencode"
+  }
 }

@@ -1,41 +1,43 @@
 {
-  "name": "ai-do",
+  "name": "@dibs.ai/dibs",
   "version": "0.1.0",
-  "description": "Standalone task panel and task tools for Pi, with optional Dex integration.",
+  "description": "Shared task store for coding agents: CLI, MCP server and todo.txt, with plugins for Claude Code, opencode, Pi, Codex and Cursor.",
   "type": "module",
   "packageManager": "bun@1.4.4",
   "keywords": [
+    "dibs",
+    "ai-agents",
+    "coding-agent",
+    "task-manager",
+    "todo",
+    "todo.txt",
+    "mcp",
+    "mcp-server",
+    "claude-code",
+    "claude-code-plugin",
+    "opencode",
+    "opencode-plugin",
     "pi-package",
     "pi",
+    "codex",
+    "cursor",
     "dex",
-    "tasks"
+    "things"
   ],
   "bin": {
-    "ai-do": "./src/cli/index.ts"
+    "dibs": "./src/cli/index.ts"
   },
   "files": [
     "src/",
-    "agents/",
-    "scripts/",
     "schema.json",
     "README.md",
     "CHANGELOG.md"
   ],
-  "pi": {
-    "extensions": [
-      "./agents/pi/index.ts"
-    ]
-  },
   "scripts": {
     "test": "bun test",
     "check": "tsc && bun test",
     "build:agent": "bun scripts/build-agent.ts",
     "pack:check": "bun pm pack --dry-run"
-  },
-  "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*",
-    "typebox": "*"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "^1.5.2",
@@ -49,22 +51,30 @@
     "name": "arobida",
     "url": "https://github.com/arobida"
   },
-  "peerDependenciesMeta": {
-    "@earendil-works/pi-coding-agent": {
-      "optional": true
-    },
-    "@earendil-works/pi-tui": {
-      "optional": true
-    },
-    "typebox": {
-      "optional": true
-    }
-  },
   "engines": {
     "bun": ">=1.4"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
     "zod": "^4.6.7"
+  },
+  "workspaces": [
+    "agents/pi",
+    "agents/opencode"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arobida/dibs.git"
+  },
+  "homepage": "https://github.com/arobida/dibs#readme",
+  "bugs": {
+    "url": "https://github.com/arobida/dibs/issues"
+  },
+  "exports": {
+    ".": "./src/core/tasks.ts",
+    "./core/*": "./src/core/*"
   }
 }

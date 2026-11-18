@@ -9,7 +9,7 @@ import { thingsAdapter } from "./things/index.ts";
 export async function syncAll(ctx: Ctx, s: Settings, file: string, make: Record<string, () => Adapter> = { dex: () => dexAdapter(ctx), things: () => thingsAdapter(ctx, s.name) }): Promise<{ name: string; error?: unknown }[]> {
 	const out: { name: string; error?: unknown }[] = [];
 	for (const name of Object.keys(s.adapters).filter((n) => s.adapters[n].sync)) {
-		try { const h = s.adapters[name].human; await sync(file, s.base, make[name](), h === "me" ? (await ghUser(ctx) ?? (() => { throw new Error('human "me" could not be resolved: set AI_DO_USER or git config github.user'); })()) : h); out.push({ name }); } catch (error) { out.push({ name, error }); }
+		try { const h = s.adapters[name].human; await sync(file, s.base, make[name](), h === "me" ? (await ghUser(ctx) ?? (() => { throw new Error('human "me" could not be resolved: set DIBS_USER or git config github.user'); })()) : h); out.push({ name }); } catch (error) { out.push({ name, error }); }
 	}
 	return out;
 }

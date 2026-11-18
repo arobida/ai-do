@@ -8,7 +8,7 @@ import { findId, runFile } from "./tasks.ts";
 
 const { version } = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
 // Pinned to this install's version so editors validate against the options it supports. Tag v<version> on release.
-export const schemaUrl = `https://raw.githubusercontent.com/arobida/ai-do/v${version}/schema.json`;
+export const schemaUrl = `https://raw.githubusercontent.com/arobida/dibs/v${version}/schema.json`;
 
 // JSONC: drops comments, then trailing commas (second pass catches a comma that sat before a comment); strings are kept as-is.
 const stripJsonc = (t: string) => t.replace(/("(?:\\.|[^"\\])*")|\/\/[^\n]*|\/\*[\s\S]*?\*\/|,(\s*[}\]])/g, (_m, str, close) => str ?? close ?? "");
@@ -50,7 +50,7 @@ function addId(dir: string, id: string) {
 	writeFileSync(path, text.replace(/^(\s*(?:\/\/[^\n]*\n\s*|\/\*[\s\S]*?\*\/\s*)*)\{/, `$1{\n  "id": ${JSON.stringify(id)}${comma}`));
 }
 
-// One line of ~/.ai-do/projects/projects.jsonl.
+// One line of ~/.dibs/projects/projects.jsonl.
 export interface Project { id: string; name: string; path: string; scope: string; created: string }
 const toProject = (r: Record<string, unknown>): Project => {
 	for (const k of ["id", "name", "path", "scope", "created"]) if (typeof r[k] !== "string") throw new Error(`bad ${k}`);
@@ -58,10 +58,10 @@ const toProject = (r: Record<string, unknown>): Project => {
 };
 
 // Falls back to the old .pi-do folder when only that exists, so existing stores keep working.
-const withLegacy = (dir: string) => existsSync(dir) || !existsSync(dir.replace(/\.ai-do$/, ".pi-do")) ? dir : dir.replace(/\.ai-do$/, ".pi-do");
-export const aiDoHome = () => process.env.AI_DO_HOME || withLegacy(join(homedir(), ".ai-do"));
+const withLegacy = (dir: string) => existsSync(dir) || !existsSync(dir.replace(/\.dibs$/, ".pi-do")) ? dir : dir.replace(/\.dibs$/, ".pi-do");
+export const dibsHome = () => process.env.DIBS_HOME || withLegacy(join(homedir(), ".dibs"));
 
-const registryFile = () => join(aiDoHome(), "projects", "projects.jsonl");
+const registryFile = () => join(dibsHome(), "projects", "projects.jsonl");
 function saveRegistry(projects: Project[]) {
 	const temp = `${registryFile()}.${randomUUID()}.tmp`;
 	writeFileSync(temp, projects.map((p) => JSON.stringify(p) + "\n").join("")); renameSync(temp, registryFile());
@@ -69,44 +69,44 @@ function saveRegistry(projects: Project[]) {
 
 export interface Settings { adapters: Record<string, { sync?: boolean; human?: string }>; file?: string; scope: string; base: string; local: string; name: string; id: string; registered: boolean }
 
-export const localDir = (cwd: string) => existsSync(join(cwd, ".agents", "ai-do")) ? join(cwd, ".agents/ai-do") : withLegacy(join(cwd, ".ai-do"));
-export const globalDir = (s: { name: string; id: string }) => join(aiDoHome(), "projects", `${s.name}.${s.id}`);
+export const localDir = (cwd: string) => existsSync(join(cwd, ".agents", "dibs")) ? join(cwd, ".agents/dibs") : withLegacy(join(cwd, ".dibs"));
+export const globalDir = (s: { name: string; id: string }) => join(dibsHome(), "projects", `${s.name}.${s.id}`);
 
 // The project's id lives in its local config.json (kept in place across scopes) and keys its projects.jsonl record.
-// Scope: forceGlobal > env AI_DO_SCOPE > the project's record scope > global config.json > "project".
+// Scope: forceGlobal > env DIBS_SCOPE > the project's record scope > global config.json > "project".
 export function settings(ctx: Ctx, forceGlobal = false): Settings {
-	const root = aiDoHome(), cwd = resolve(ctx.cwd), trusted = ctx.trusted();
+	const root = dibsHome(), cwd = resolve(ctx.cwd), trusted = ctx.trusted();
 	if (forceGlobal && !trusted) throw new Error("--global requires a trusted project");
 	const local = localDir(cwd);
 	const id: string = (trusted ? readConfig(local).id : undefined) ?? randomUUID();
 	const record = readJsonl(join(root, "projects", "projects.jsonl"), toProject).find((p) => p.id === id);
 	const globalConfig = readConfig(root);
-	const scope = forceGlobal ? "global" : process.env.AI_DO_SCOPE || record?.scope || globalConfig.scope || "project";
-	if (!["project", "global", "temp"].includes(scope)) throw new Error(`Invalid ai-do scope: ${scope}`);
+	const scope = forceGlobal ? "global" : process.env.DIBS_SCOPE || record?.scope || globalConfig.scope || "project";
+	if (!["project", "global", "temp"].includes(scope)) throw new Error(`Invalid dibs scope: ${scope}`);
 	const name = record?.name ?? basename(cwd);
-	// Untrusted projects use a temp store so ai-do never writes into them.
+	// Untrusted projects use a temp store so dibs never writes into them.
 	const temp = !trusted && !forceGlobal || scope === "temp";
 	// Temp stores use the same layout as project stores, in a per-session folder.
-	const base = temp ? join(tmpdir(), "ai-do", createHash("sha256").update(ctx.sessionId()).digest("hex"), ".ai-do") : scope === "global" ? globalDir({ name, id }) : local;
+	const base = temp ? join(tmpdir(), "dibs", createHash("sha256").update(ctx.sessionId()).digest("hex"), ".dibs") : scope === "global" ? globalDir({ name, id }) : local;
 	const config = { ...globalConfig, ...(base ? readConfig(base) : {}) };
-	return { adapters: config.adapters ?? {}, file: process.env.AI_DO_FILE || config.file, scope: temp ? "temp" : scope, base, local, name, id, registered: !!record };
+	return { adapters: config.adapters ?? {}, file: process.env.DIBS_FILE || config.file, scope: temp ? "temp" : scope, base, local, name, id, registered: !!record };
 }
 
 export const helloWorld = () => JSON.stringify({ id: randomUUID(), name: "Hello World", completed: false, created: new Date().toISOString().slice(0, 10), started_at: null }) + "\n";
 
-// Resolves the todos file, creating the ai-do folder, config, list index, project registration and Hello World todo on first use.
+// Resolves the todos file, creating the dibs folder, config, list index, project registration and Hello World todo on first use.
 export function storeFile(ctx: Ctx, s: Settings): string {
-	// ~/.ai-do always exists: global config plus the projects registry. Its absence means this run is the installation.
-	const installing = !existsSync(join(aiDoHome(), "config.json"));
-	mkdirSync(join(aiDoHome(), "projects"), { recursive: true });
-	ensureConfig(aiDoHome());
-	if (!existsSync(join(aiDoHome(), "projects", "projects.jsonl"))) writeFileSync(join(aiDoHome(), "projects", "projects.jsonl"), "");
+	// ~/.dibs always exists: global config plus the projects registry. Its absence means this run is the installation.
+	const installing = !existsSync(join(dibsHome(), "config.json"));
+	mkdirSync(join(dibsHome(), "projects"), { recursive: true });
+	ensureConfig(dibsHome());
+	if (!existsSync(join(dibsHome(), "projects", "projects.jsonl"))) writeFileSync(join(dibsHome(), "projects", "projects.jsonl"), "");
 	if (s.file) return resolve(ctx.cwd, home(s.file));
 	const todos = join(s.base, "todos"), file = join(todos, `${s.name}.todos.jsonl`);
 	// Temp stores never write into the project or the registry.
 	if (s.scope !== "temp" && !readConfig(s.local).id) { mkdirSync(s.local, { recursive: true }); addId(s.local, s.id); }
 	if (!s.registered && s.scope !== "temp") {
-		appendFileSync(join(aiDoHome(), "projects", "projects.jsonl"), JSON.stringify({ id: s.id, name: s.name, path: resolve(ctx.cwd), scope: s.scope, created: new Date().toISOString() }) + "\n");
+		appendFileSync(join(dibsHome(), "projects", "projects.jsonl"), JSON.stringify({ id: s.id, name: s.name, path: resolve(ctx.cwd), scope: s.scope, created: new Date().toISOString() }) + "\n");
 		s.registered = true;
 	} else if (s.scope !== "temp") {
 		// Last opened wins: a moved project re-registers its new path.
@@ -124,11 +124,11 @@ export function storeFile(ctx: Ctx, s: Settings): string {
 	return file;
 }
 
-// Moves the project store between .ai-do and .agents/ai-do (todos, config, list index); never overwrites.
+// Moves the project store between .dibs and .agents/dibs (todos, config, list index); never overwrites.
 export function migrate(ctx: Ctx, target: string): string {
 	if (!ctx.trusted()) throw new Error("migrate requires a trusted project");
 	const s = settings(ctx);
-	if (s.scope !== "project" || s.file) throw new Error("migrate only moves a project-scope ai-do folder; use /todos scope to change scope");
+	if (s.scope !== "project" || s.file) throw new Error("migrate only moves a project-scope dibs folder; use /todos scope to change scope");
 	const to = join(resolve(ctx.cwd), target);
 	if (to === s.base) throw new Error(`Already stored in ${to}`);
 	if (existsSync(to)) throw new Error(`${to} already exists`);
@@ -140,7 +140,7 @@ export function migrate(ctx: Ctx, target: string): string {
 // Switches scope and moves the todos folder with it; the local config.json (holding the project id) stays put.
 export function setScope(ctx: Ctx, scope: string): string {
 	if (!ctx.trusted()) throw new Error("scope requires a trusted project");
-	const s = settings(ctx), registry = join(aiDoHome(), "projects", "projects.jsonl");
+	const s = settings(ctx), registry = join(dibsHome(), "projects", "projects.jsonl");
 	if (s.file) throw new Error("scope does not apply to an explicit file");
 	storeFile(ctx, s); // registers the project and writes its id if needed
 	const projects = readJsonl(registry, toProject);
@@ -163,18 +163,18 @@ const findTask = (file: string, id: string): any => {
 	return items.find((t: any) => t.id === findId(items, id, file));
 };
 
-// `[name](aido://<project-id>/<task-id>)`; only registered stores can be resolved later.
+// `[name](dibs://<project-id>/<task-id>)`; only registered stores can be resolved later.
 export function link(ctx: Ctx, id: string): string {
 	const s = settings(ctx);
 	if (s.scope === "temp" || s.file) throw new Error(`Cannot link: ${s.file ? "explicit-file" : "temp-scope"} stores are not registered, so the link could never be resolved`);
 	const t = findTask(storeFile(ctx, s), id);
-	return `[${t.name}](aido://${s.id}/${t.id})`;
+	return `[${t.name}](dibs://${s.id}/${t.id})`;
 }
 
 // Looks the project up in the registry and reads its store; never a stale copy at an old path.
 export function resolveLink(url: string): string {
-	const m = url.match(/^(?:ai|pi)do:\/\/([\w-]+)\/([\w-]+)$/);
-	if (!m) throw new Error(`Invalid aido URL: ${url}`);
+	const m = url.match(/^dibs:\/\/([\w-]+)\/([\w-]+)$/);
+	if (!m) throw new Error(`Invalid dibs URL: ${url}`);
 	const p = readJsonl(registryFile(), toProject).find((r) => r.id === m[1]);
 	if (!p) throw new Error(`Unknown project: ${m[1]}`);
 	const local = localDir(p.path);
