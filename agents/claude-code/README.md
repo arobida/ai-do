@@ -17,3 +17,11 @@ claude plugin install ai-do@ai-do
 ```
 
 Verify with `claude plugin validate dist/claude-code`. Restart Claude Code; the `ai-do` skill is then available.
+
+## Tools (MCP)
+
+Requires `ai-do` on PATH (e.g. `bun link`). Add to `.mcp.json`:
+
+```json
+{"mcpServers":{"ai-do":{"command":"ai-do","args":["mcp"]}}}
+```

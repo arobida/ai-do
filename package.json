@@ -38,7 +38,10 @@
     "typebox": "*"
   },
   "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^1.5.2",
+    "@earendil-works/pi-tui": "^1.5.2",
     "@types/bun": "^1.4.4",
+    "typebox": "^1.4.7",
     "typescript": "^7.0.2"
   },
   "license": "MIT",
@@ -59,5 +62,9 @@
   },
   "engines": {
     "bun": ">=1.4"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
   }
 }

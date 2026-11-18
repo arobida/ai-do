@@ -17,6 +17,7 @@
       },
       "source": "./",
       "strict": false,
+      "mcpServers": "./agents/claude-code/.mcp.json",
       "skills": [
         "./agents/shared/skills/"
       ]

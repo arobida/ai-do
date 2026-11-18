@@ -27,3 +27,11 @@ mkdir -p ~/.cursor/skills && cp -R /path/to/ai-do/dist/cursor/skills/ai-do ~/.cu
 Restart Cursor, then check Customize -> Skills for `ai-do`. You can also run it with `/ai-do` in chat.
 
 Docs: https://cursor.com/docs/context/skills
+
+## Tools (MCP)
+
+Requires `ai-do` on PATH (e.g. `bun link`). Add to `.cursor/mcp.json`:
+
+```json
+{"mcpServers":{"ai-do":{"command":"ai-do","args":["mcp"]}}}
+```

@@ -20,3 +20,11 @@ Use `ln -s "$PWD/dist/opencode/skills/ai-do" <target>/ai-do` instead of `cp -R` 
 Check: start opencode in the project and ask it to load the `ai-do` skill, or type `@ai-do`. (`opencode debug skill` does not exist in v2.3.0.)
 
 Docs: https://opencode.ai/docs/skills/ (also scans `.claude/skills` and `.agents/skills`).
+
+## Tools (MCP)
+
+Requires `ai-do` on PATH (e.g. `bun link`). Add to `opencode.json`:
+
+```json
+{"mcp":{"ai-do":{"type":"local","command":["ai-do","mcp"]}}}
+```

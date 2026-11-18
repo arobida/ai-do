@@ -45,7 +45,7 @@ test("manifest exposes the source and host packages remain peers", async () => {
  const pkg = await Bun.file(new URL("../package.json", import.meta.url)).json();
  expect(pkg.pi.extensions).toEqual(["./agents/pi/index.ts"]);
  expect(pkg.keywords).toContain("pi-package");
- expect(pkg.dependencies).toBeUndefined();
+ expect(Object.keys(pkg.dependencies).sort()).toEqual(["@modelcontextprotocol/sdk", "zod"]);
  expect(await Bun.file(new URL("../agents/pi/index.ts", import.meta.url)).exists()).toBe(true);
 });
 

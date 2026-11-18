@@ -31,3 +31,7 @@ test("agents never resolve into another agent", () => {
 test("src/core never resolves into agents or src/cli", () => {
 	for (const f of ts("src/core")) for (const t of rel(f)) expect([f, t.startsWith(dir("agents")) || t.startsWith(dir("src/cli"))]).toEqual([f, false]);
 });
+
+test("src/cli imports only src/core, node and the MCP SDK", () => {
+	for (const f of ts("src/cli")) for (const i of imports(f)) expect([f, i.startsWith("node:") || i.startsWith("@modelcontextprotocol/") || i === "zod" || /^\.\.\/core\//.test(i) || i === "./mcp.ts"]).toEqual([f, true]);
+});

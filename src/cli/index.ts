@@ -18,6 +18,7 @@ const usage = `usage: ai-do [--global] [--json] <command>
   import <file> | export [file]
   sync                      sync enabled adapters (dex, things)
   link <id> | resolve <url>
+  mcp                       serve the task tools over MCP (stdio)
   scope project|global | migrate .ai-do|.agents/ai-do
 env: AI_DO_AGENT names the creator; AI_DO_USER sets your GitHub user; AI_DO_TRUST=1 trusts cwd; AI_DO_SESSION overrides the session id`;
 
@@ -41,7 +42,8 @@ try {
 	if (v.help || !cmd) { console.log(usage); process.exit(0); }
 	const need = () => arg ?? (() => { throw new Error(`${cmd} needs an argument`); })();
 	const out = (s: string) => console.log(s);
-	if (cmd === "link") out(link(ctx, need()));
+	if (cmd === "mcp") await (await import("./mcp.ts")).serveMcp(ctx);
+	else if (cmd === "link") out(link(ctx, need()));
 	else if (cmd === "resolve") out(resolveLink(need()));
 	else if (cmd === "scope") out(setScope(ctx, need()));
 	else if (cmd === "migrate") out(migrate(ctx, need()));
