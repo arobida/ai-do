@@ -1,0 +1,7 @@
+{
+  "name": "ai-do-opencode",
+  "private": true,
+  "type": "module",
+  "exports": { "./tui": "./plugin/tui.tsx" },
+  "peerDependencies": { "@opencode/plugin": "latest", "@opentui/core": ">=0.6.6", "@opentui/solid": ">=0.6.6", "solid-js": ">=1.9.0" }
+}

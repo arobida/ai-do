@@ -1,0 +1,113 @@
+import { atom, read, update } from 'claude-code'
+import type { EngineInterface, Register } from 'claude-code'
+
+import type { Panel, View } from '../types'
+
+const mine = atom({ plugin: 'ai-do', key: 'mine' } as const, [] as string[])
+const view = atom({ plugin: 'ai-do', key: 'view' } as const, 'current' as View)
+const collapsed = atom({ plugin: 'ai-do', key: 'collapsed' } as const, false)
+const panel = atom({ plugin: 'ai-do', key: 'panel' } as const, null as Panel | null)
+
+const views: View[] = ['current', 'project', 'completed']
+const glyph = { done: '✓', started: '◐', open: '○' } as const
+const color = { done: 'green', started: 'yellow', open: undefined } as const
+
+let last = ''
+let path = ''
+
+// The hooks worker may lack the user's PATH (e.g. ~/.bun/bin for ai-do and bun), so read it from their shell once.
+async function userPath($: EngineInterface) {
+  if (path) return path
+  const r = await $.process.run(['/bin/sh', '-c', '${SHELL:-/bin/sh} -lic \'printf "\\n%s" "$PATH"\' 2>/dev/null'])
+  path = r.stdout.trim().split('\n').pop() ?? ''
+  return path
+}
+
+async function refresh($: EngineInterface) {
+  const v = await read($, view)
+  const ids = await read($, mine)
+  const argv = ['ai-do', 'panel', v, '--json', ...(ids.length ? ['--mine', ids.join(',')] : [])]
+  try {
+    const { exitCode, stdout } = await $.process.run((p => (p ? ['/usr/bin/env', `PATH=${p}`, ...argv] : argv))(await userPath($)))
+    if (exitCode !== 0) throw new Error('ai-do failed')
+    if (stdout === last) return
+    const p = JSON.parse(stdout) as Panel
+    last = stdout
+    await update($, panel, () => p)
+  } catch {
+    last = ''
+    await update($, panel, () => null)
+  }
+}
+
+export const register: Register = on => {
+  on('session.start', async ($, e, next) => {
+    await $.command.register({
+      name: 'todos',
+      description: 'Task panel: switch view or collapse',
+      argumentHint: '[current|project|completed|toggle]',
+    })
+    await refresh($)
+    $.clock.every(3000, () => refresh($))
+    return next(e)
+  })
+
+  on('tool.call', async ($, e, next) => {
+    const name: string = e.tool
+    const input = e as Record<string, unknown>
+    const touches = /ai-do.*todo_(create|edit|status)$/.test(name)
+    const id = typeof input.id === 'string' || typeof input.id === 'number' ? String(input.id) : null
+    if (touches && id) await update($, mine, m => (m.includes(id) ? m : [...m, id]))
+
+    const res = await next(e)
+
+    if (/todo_create$/.test(name) && /ai-do/.test(name) && typeof input.parent !== 'undefined') {
+      const ids = await read($, mine)
+      const text = 'text' in res && typeof res.text === 'string' ? res.text : JSON.stringify(res)
+      const m = /Created task (\S+)/.exec(text)
+      const nid = m?.[1]
+      if (nid && ids.includes(String(input.parent))) await update($, mine, cur => [...cur, nid])
+    }
+    if (name.includes('todo_')) await refresh($)
+    return res
+  })
+
+  on('command.run', { command: 'todos' }, async ($, e, next) => {
+    const arg = e.args.trim()
+    if (arg === 'toggle') await update($, collapsed, c => !c)
+    else if ((views as string[]).includes(arg)) {
+      await update($, view, () => arg as View)
+      await refresh($)
+    } else if (arg) return { text: 'Usage: /todos [current|project|completed|toggle]' }
+    else await update($, view, v => views[(views.indexOf(v) + 1) % views.length] ?? 'current')
+    if (!arg) await refresh($)
+    return { text: 'ok' }
+  })
+
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
+    const p = await read($, panel)
+    if (e.props.hasSurvey || p === null) return next(e)
+    const hide = await read($, collapsed)
+    const { Box, Text } = $.ui.resolve(e)
+    return (
+      <Box flexDirection="column">
+        <Text>
+          <Text color="cyan">● {p.title}</Text>
+          <Text dimColor> /todos {hide ? 'toggle to expand' : '[current|project|completed|toggle]'}</Text>
+        </Text>
+        {hide ? null : p.empty ? (
+          <Text dimColor>  {p.empty}</Text>
+        ) : (
+          <Box flexDirection="column">
+            {p.rows.map(r => (
+              <Text key={r.id} color={color[r.state]} dimColor={r.state !== 'started' && r.state !== 'done'} strikethrough={r.state === 'done'}>
+                {'  '}{glyph[r.state]} #{r.id} {r.name}
+              </Text>
+            ))}
+            {p.more ? <Text dimColor>  +{p.more} more</Text> : null}
+          </Box>
+        )}
+      </Box>
+    )
+  })
+}

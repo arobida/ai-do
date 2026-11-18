@@ -6,5 +6,6 @@
   "author": {
     "name": "arobida",
     "url": "https://github.com/arobida"
-  }
+  },
+  "types": "./types/index.d.ts"
 }

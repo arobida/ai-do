@@ -9,6 +9,7 @@ import { agentName, ghUser } from "../core/identity.ts";
 import { runFile } from "../core/tasks.ts";
 import { syncAll } from "../core/adapters/sync-all.ts";
 import type { Ctx } from "../core/ctx.ts";
+import { panel, panelText, views, type View } from "../core/panel.ts";
 
 const usage = `usage: ai-do [--global] [--json] <command>
   list [--query q] [--human u|me] | ready [--human u|me]
@@ -18,6 +19,7 @@ const usage = `usage: ai-do [--global] [--json] <command>
   import <file> | export [file]
   sync                      sync enabled adapters (dex, things)
   link <id> | resolve <url>
+  panel [current|project|completed] [--mine a,b]   task panel text (--json: rows)
   mcp                       serve the task tools over MCP (stdio)
   scope project|global | migrate .ai-do|.agents/ai-do
 env: AI_DO_AGENT names the creator; AI_DO_USER sets your GitHub user; AI_DO_TRUST=1 trusts cwd; AI_DO_SESSION overrides the session id`;
@@ -37,7 +39,7 @@ const ctx: Ctx = {
 try {
 	const { values: v, positionals: [cmd, arg] } = parseArgs({
 		allowPositionals: true,
-		options: { global: { type: "boolean" }, json: { type: "boolean" }, help: { type: "boolean" }, query: { type: "string" }, description: { type: "string" }, parent: { type: "string" }, "blocked-by": { type: "string" }, human: { type: "string" }, name: { type: "string" }, result: { type: "string" } },
+		options: { global: { type: "boolean" }, json: { type: "boolean" }, help: { type: "boolean" }, query: { type: "string" }, description: { type: "string" }, parent: { type: "string" }, "blocked-by": { type: "string" }, human: { type: "string" }, name: { type: "string" }, result: { type: "string" }, mine: { type: "string" } },
 	});
 	if (v.help || !cmd) { console.log(usage); process.exit(0); }
 	const need = () => arg ?? (() => { throw new Error(`${cmd} needs an argument`); })();
@@ -47,6 +49,13 @@ try {
 	else if (cmd === "resolve") out(resolveLink(need()));
 	else if (cmd === "scope") out(setScope(ctx, need()));
 	else if (cmd === "migrate") out(migrate(ctx, need()));
+	else if (cmd === "panel") {
+		const view = (arg ?? "project") as View;
+		if (!views.includes(view)) throw new Error(`panel view must be one of ${views.join(", ")}`);
+		const tasks = JSON.parse(await runFile(storeFile(ctx, settings(ctx, v.global)), ["list", "--all", "--json"]));
+		const p = panel(tasks, view, new Set(v.mine?.split(",").filter(Boolean)));
+		out(v.json ? JSON.stringify(p) : panelText(p));
+	}
 	else if (cmd === "sync") {
 		const s = settings(ctx, v.global), res = await syncAll(ctx, s, storeFile(ctx, s));
 		for (const r of res) (r.error ? console.error : out)(r.error ? `${r.name}: sync failed: ${(r.error as Error).message ?? r.error}` : `${r.name}: synced`);

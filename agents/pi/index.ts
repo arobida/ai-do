@@ -12,6 +12,7 @@ import { ghUser } from "../../src/core/identity.ts";
 import { syncAll as syncAllCore } from "../../src/core/adapters/sync-all.ts";
 import { saveThingsToken } from "../../src/core/adapters/things/index.ts";
 import type { Ctx } from "../../src/core/ctx.ts";
+import { glyph, panel, shown as shownCore, views, type View } from "../../src/core/panel.ts";
 
 const toCtx = (pi: ExtensionAPI, ctx: ExtensionContext): Ctx => ({ cwd: ctx.cwd, trusted: () => ctx.isProjectTrusted(), sessionId: () => ctx.sessionManager.getSessionId(), exec: (cmd, args, opts) => pi.exec(cmd, args, opts) });
 
@@ -29,8 +30,7 @@ export default function taskPanel(pi: ExtensionAPI) {
 		mine.clear();
 		for (const e of ctx.sessionManager.getEntries() as any[]) if (e.type === "custom" && e.customType === "dex-current" && e.data?.id) mine.add(e.data.id);
 	}
-	const views = ["current", "project", "completed"] as const;
-	let view: (typeof views)[number] = "current";
+	let view: View = "current";
 	let tui: TUI | undefined;
 	const claim = (ctx: ExtensionContext) => `${ctx.sessionManager.getSessionId()}:${process.pid}`;
 	async function run(ctx: ExtensionContext, args: string[], signal?: AbortSignal, global = false): Promise<string> {
@@ -50,27 +50,17 @@ export default function taskPanel(pi: ExtensionAPI) {
 		return syncing;
 	}
 
-	function shown(): Task[] {
-		if (view === "completed") return tasks.filter((t) => t.completed);
-		// Current = tasks this session touched plus their subtasks from anywhere (e.g. `dex create --parent` by another agent); unrelated new tasks stay in Project.
-		if (view === "current") { const byId = new Map(tasks.map((t) => [t.id, t])); const memo = new Map<string, boolean>(); const current = (t: Task | undefined, depth = 0): boolean => { if (!t || depth >= 50) return false; if (!memo.has(t.id)) memo.set(t.id, mine.has(t.id) || current(t.parent ? byId.get(t.parent) : undefined, depth + 1)); return memo.get(t.id)!; }; return tasks.filter((t) => current(t)); }
-		return tasks.filter((t) => !t.completed);
-	}
+	const shown = () => shownCore(tasks, view, mine);
 
 	function render(theme: Theme, width: number): string[] {
-		const list = shown();
-		const done = list.filter((task) => task.completed).length;
-		const title = { current: "Current", project: "Project", completed: "Completed" }[view];
-		const lines = [`${theme.fg("accent", "●")} ${theme.fg("accent", `${title} tasks (${view === "project" ? `${list.length} open` : view === "completed" ? list.length : `${done}/${list.length}`})`)} ${theme.fg("dim", "ctrl+shift+v: view")}`];
+		const p = panel(tasks, view, mine);
+		const lines = [`${theme.fg("accent", "●")} ${theme.fg("accent", p.title)} ${theme.fg("dim", "ctrl+shift+v: view")}`];
 		if (collapsed) lines.push(theme.fg("dim", "  ctrl+shift+t to expand"));
-		else if (!list.length) lines.push(theme.fg("dim", view === "current" ? "  No tasks worked on in this session yet" : "  None"));
+		else if (p.empty) lines.push(theme.fg("dim", `  ${p.empty}`));
 		else {
-			for (const task of list.slice(0, 11)) {
-				const glyph = task.completed ? theme.fg("success", "✓") : task.started_at ? theme.fg("warning", "◐") : theme.fg("dim", "○");
-				const name = task.name.replace(/\s+/g, " ").trim();
-				lines.push(`  ${glyph} ${theme.fg("dim", `#${task.id}`)} ${task.completed ? theme.strikethrough(theme.fg("muted", name)) : name}`);
-			}
-			if (list.length > 11) lines.push(theme.fg("dim", `  +${list.length - 11} more`));
+			const color = { done: "success", started: "warning", open: "dim" } as const;
+			for (const r of p.rows) lines.push(`  ${theme.fg(color[r.state], glyph[r.state])} ${theme.fg("dim", `#${r.id}`)} ${r.state === "done" ? theme.strikethrough(theme.fg("muted", r.name)) : r.name}`);
+			if (p.more) lines.push(theme.fg("dim", `  +${p.more} more`));
 		}
 		return lines.map((line) => truncateToWidth(line, width, "…"));
 	}

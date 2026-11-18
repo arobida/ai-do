@@ -27,3 +27,15 @@ Requires `ai-do` on your PATH (for example, after `bun link`). Add this to `open
 ```json
 {"mcp":{"ai-do":{"type":"local","command":["ai-do","mcp"]}}}
 ```
+
+## Task panel
+
+A live task panel (views `current`/`project`/`completed`, like the Pi panel) shown above the prompt. Needs `ai-do` on your PATH. It is a TUI-only plugin, so add it to `cli.json` (docs: https://opencode.ai/docs/cli/plugins):
+
+```json
+{ "plugins": ["/absolute/path/to/ai-do/agents/opencode/plugin/tui.tsx"] }
+```
+
+Local plugin entries are documented as directories or package names; if the file path is rejected, point at `/absolute/path/to/ai-do/agents/opencode` (its `package.json` exports `./tui`). Install peers there first: `cd agents/opencode && bun add @opencode/plugin @opentui/core @opentui/solid solid-js`.
+
+Keys: `ctrl+shift+v` cycles the view, `ctrl+shift+t` collapses (also `/tasks-view`, `/tasks-toggle`, and the command palette). The panel refreshes every 3 s and after any event mentioning a `todo_*` tool. Not verified against a running opencode.

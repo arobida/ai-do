@@ -25,3 +25,11 @@ Requires `ai-do` on your PATH (for example, after `bun link`). Add this to `.mcp
 ```json
 {"mcpServers":{"ai-do":{"command":"ai-do","args":["mcp"]}}}
 ```
+
+## Task panel
+
+A live task panel sits above the prompt. It shows the panel title, then each task as `✓`, `◐` or `○` with its id and name, `+N more` when rows are cut, or an empty-state message. It refreshes at session start, every 3 seconds, and after any `todo_` tool call. Tasks this session touched are tracked and passed to `ai-do panel --mine`.
+
+Use `/todos` to cycle views, `/todos current|project|completed` to pick one, and `/todos toggle` to collapse or expand the panel.
+
+Requires Claude Code v2.1.287+ and `ai-do` on your PATH. If `ai-do` fails, the panel is hidden.
