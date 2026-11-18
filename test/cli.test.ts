@@ -55,3 +55,12 @@ test("sync with no adapters enabled", () => {
 	expect(r.out).toContain("no adapters enabled");
 	expect(r.code).toBe(0);
 });
+
+test("concurrent creates from separate processes all persist", async () => {
+	const cwd = mkdtempSync(join(tmpdir(), "ai-do-cli-"));
+	const env = { ...process.env, AI_DO_HOME: home, AI_DO_SESSION: "cli-test", AI_DO_TRUST: "1", AI_DO_SCOPE: "project" };
+	const procs = Array.from({ length: 20 }, (_, i) => Bun.spawn(["bun", cli, "create", `t${i}`], { cwd, env }));
+	expect(await Promise.all(procs.map((p) => p.exited))).toEqual(Array(20).fill(0));
+	const names = new Set(JSON.parse(run(cwd, "list", "--json").out).map((t: any) => t.name).filter((n: string) => /^t\d+$/.test(n)));
+	expect(names.size).toBe(20);
+}, 30000);
