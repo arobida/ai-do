@@ -440,3 +440,26 @@ test("session_shutdown releases claims; force overrides a live claim; link and r
   rmSync(dir, { recursive: true, force: true });
  }
 });
+
+test("Pi and CLI writing the same store concurrently lose no tasks", async () => {
+ const { mkdtempSync, readFileSync, rmSync } = await import("node:fs");
+ const { tmpdir } = await import("node:os");
+ const { join } = await import("node:path");
+ const dir = mkdtempSync(join(tmpdir(), "ai-do-race-"));
+ const previous = process.env.AI_DO_FILE;
+ process.env.AI_DO_FILE = join(dir, "tasks.jsonl");
+ try {
+  let tool: any;
+  extension({ registerTool: (t: any) => tool = shimTool(t), registerCommand() {}, registerShortcut() {}, on() {}, appendEntry() {}, exec: async () => ({ code: 1, stdout: "", stderr: "" }) } as any);
+  const ctx = { cwd: dir, hasUI: false, isProjectTrusted: () => true, ui: { notify() {} }, sessionManager: { getSessionId: () => "race" } };
+  const cli = Array.from({ length: 10 }, (_, i) => Bun.spawn(["bun", join(import.meta.dir, "../src/cli/index.ts"), "create", `cli${i}`], { cwd: dir, env: { ...process.env, AI_DO_TRUST: "1" } }).exited);
+  const pi = Array.from({ length: 10 }, (_, i) => tool.execute("c", { action: "create", name: `pi${i}` }, undefined, undefined, ctx));
+  expect(await Promise.all(cli)).toEqual(Array(10).fill(0));
+  await Promise.all(pi);
+  const names = readFileSync(process.env.AI_DO_FILE!, "utf8").trim().split("\n").map(l => JSON.parse(l).name).filter((n: string) => /^(cli|pi)\d+$/.test(n));
+  expect(new Set(names).size).toBe(20);
+ } finally {
+  if (previous === undefined) delete process.env.AI_DO_FILE; else process.env.AI_DO_FILE = previous;
+  rmSync(dir, { recursive: true, force: true });
+ }
+}, 30000);
