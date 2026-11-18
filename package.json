@@ -37,7 +37,8 @@
     "test": "bun test",
     "check": "tsc && bun test",
     "build:agent": "bun scripts/build-agent.ts",
-    "pack:check": "bun pm pack --dry-run"
+    "pack:check": "bun pm pack --dry-run",
+    "release": "bun publish --access public; (cd agents/pi && bun publish --access public); (cd agents/opencode && bun publish --access public); bunx jsr publish --allow-slow-types; (cd agents/pi && bunx jsr publish --allow-slow-types); (cd agents/opencode && bunx jsr publish --allow-slow-types)"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "^1.5.2",
