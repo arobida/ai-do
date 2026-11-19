@@ -22,7 +22,7 @@ Docs: https://opencode.ai/docs/skills/ (opencode also scans `.claude/skills` and
 
 ## Tools (MCP)
 
-Runs the CLI through `bunx` (needs [Bun](https://bun.sh)). Add this to `opencode.json`:
+The MCP server runs the CLI through `bunx`. Add this to `opencode.json`:
 
 ```json
 {"mcp":{"dibs":{"type":"local","command":["bunx","@dibs.ai/dibs","mcp"]}}}
@@ -30,7 +30,7 @@ Runs the CLI through `bunx` (needs [Bun](https://bun.sh)). Add this to `opencode
 
 ## Task panel
 
-A live task panel (views `current`/`project`/`completed`, like the Pi panel) shown above the prompt. Runs `bunx @dibs.ai/dibs`, so it needs [Bun](https://bun.sh). It is a TUI-only plugin, so add it to `cli.json` (docs: https://opencode.ai/docs/cli/plugins):
+A live task panel (views `current`/`project`/`completed`, like the Pi panel) shown above the prompt. It is a TUI-only plugin, so add it to `cli.json` (docs: https://opencode.ai/docs/cli/plugins):
 
 ```json
 { "plugins": ["/absolute/path/to/dibs/agents/opencode/plugin/tui.tsx"] }

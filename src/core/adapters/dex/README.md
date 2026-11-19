@@ -1,16 +1,16 @@
 # Dex adapter
 
-Syncs dibs's todo store with [Dex](https://github.com/dcramer/dex) through the `dex` CLI.
+Syncs the dibs store with [Dex](https://github.com/dcramer/dex) through the `dex` CLI.
 
 ## Connect
 
 1. Install `dex` and make sure it is on `PATH` (`dex --version`).
 2. Optional: run `dex init` (global `~/.config/dex/dex.toml`) or add a project `.dex/config.toml` to choose where Dex stores tasks. Without either, dibs uses temporary per-session Dex storage.
-3. Turn sync on in an dibs `config.json` (global `~/.dibs/config.json` or the project's):
+3. Turn sync on in a dibs `config.json` (global `~/.dibs/config.json` or the project's):
    ```json
    {"adapters": {"dex": {"sync": true}}}
    ```
-4. Run `/reload` in Pi. Existing Dex tasks are pulled into dibs on the first sync, and dibs tasks are pushed to Dex.
+4. Run `/reload` in Pi, or `bunx @dibs.ai/dibs sync` from the CLI. Existing Dex tasks are pulled into dibs on the first sync, and dibs tasks are pushed to Dex.
 
 To disconnect, set `"sync": false` or remove the entry. Tasks already synced stay on both sides.
 

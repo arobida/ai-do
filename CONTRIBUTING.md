@@ -4,7 +4,7 @@ Issues and pull requests are welcome. Keep changes small and covered by tests.
 
 ## Tech stack
 
-- TypeScript (ESM), loaded directly by Pi, with no build step.
+- TypeScript (ESM). Pi loads it directly, with no build step.
 - [Bun](https://bun.sh) for development, tests, and packaging.
 - Peer dependencies: `@earendil-works/pi-coding-agent`, `@earendil-works/pi-tui`, `typebox`.
 
@@ -17,6 +17,7 @@ src/core/store.ts       Settings, scopes, store paths, project registry, migrate
 src/core/identity.ts    Agent name and GitHub user resolution
 src/core/util.ts        Shared helpers: ~ expansion, file lock, JSONL reader
 src/core/tasks.ts       Actions on the dibs JSONL todos file (the one store)
+src/core/panel.ts       Task panel views shared by the agents
 src/core/ctx.ts         Ctx: host-neutral cwd/trust/session/exec
 src/cli/index.ts        dibs CLI
 src/cli/mcp.ts          dibs mcp: task tools over MCP (stdio)
@@ -46,8 +47,16 @@ Generate a codebase summary for agents with `bunx repomix --ignore "node_modules
 
 The package is MIT licensed (see `LICENSE`), and contributions fall under the same license.
 
-## Publishing
+## Releasing
 
-The package.json has the Pi manifest and the `pi-package` keyword. Before the first release, confirm npm name availability (or choose a scope), add repository metadata, and review the tarball with `bun run pack:check`. Then run `bun publish`. Nothing publishes automatically.
+```sh
+bun run bump <patch|minor|major|x.y.z> [. | agents/pi | agents/opencode]
+```
 
-To release, run `bun pm version <patch|minor|major>` and `git push --follow-tags`, then `bun publish`. The version command bumps `package.json` and creates the `v<version>` git tag. Configs point their `$schema` at `https://raw.githubusercontent.com/arobida/dibs/v<version>/schema.json` (built from `package.json` in `src/core/store.ts`), so that URL returns 404 until the tag is pushed.
+The package directory defaults to `.`. [`scripts/bump.ts`](scripts/bump.ts) requires a clean tree, runs the tests, bumps `package.json` and `jsr.json`, commits with `wt step commit`, tags `<name>@<version>`, pushes, and runs [`scripts/release.ts`](scripts/release.ts). That publishes the package to npm, and the core package to JSR too.
+
+Configs point `$schema` at `https://raw.githubusercontent.com/arobida/dibs/v<version>/schema.json` ([`src/core/store.ts`](src/core/store.ts)). The bump script does not create a `v<version>` tag, so that URL returns 404 until someone pushes one.
+
+## Documentation
+
+User docs start at the [README](README.md). Load the `technical-writing` skill before editing any of them. `docs/` holds internal plans, ideas and research.

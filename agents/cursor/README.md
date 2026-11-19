@@ -28,7 +28,7 @@ Docs: https://cursor.com/docs/context/skills
 
 ## Tools (MCP)
 
-Runs the CLI through `bunx` (needs [Bun](https://bun.sh)). Add this to `.cursor/mcp.json`:
+The MCP server runs the CLI through `bunx`. Add this to `.cursor/mcp.json`:
 
 ```json
 {"mcpServers":{"dibs":{"command":"bunx","args":["@dibs.ai/dibs","mcp"]}}}

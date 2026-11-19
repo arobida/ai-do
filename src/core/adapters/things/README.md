@@ -1,6 +1,6 @@
 # Things 3 adapter
 
-Syncs dibs's todo store with [Things 3](https://culturedcode.com/things/) on macOS. Writes use the [Things URL scheme](https://culturedcode.com/things/support/articles/2803573/); reads use Things' AppleScript dictionary through `osascript`, because the URL scheme cannot read tasks.
+Syncs the dibs store with [Things 3](https://culturedcode.com/things/) on macOS. Writes use the [Things URL scheme](https://culturedcode.com/things/support/articles/2803573/); reads use Things' AppleScript dictionary through `osascript`, because the URL scheme cannot read tasks.
 
 ## Connect
 
@@ -11,11 +11,11 @@ Syncs dibs's todo store with [Things 3](https://culturedcode.com/things/) on mac
    /todos connect things <token>
    ```
    It is written to `~/.dibs/adapters/things.json` with `0600` permissions, never to a `config.json` (which may be committed). `DIBS_THINGS_TOKEN` overrides the file.
-4. Turn sync on in an dibs `config.json` (global `~/.dibs/config.json` or the project's):
+4. Turn sync on in a dibs `config.json` (global `~/.dibs/config.json` or the project's):
    ```json
    {"adapters": {"things": {"sync": true}}}
    ```
-5. Run `/reload` in Pi. On the first read, macOS asks to let Pi's terminal control Things 3 (System Settings → Privacy & Security → Automation); allow it.
+5. Run `/reload` in Pi, or `bunx @dibs.ai/dibs sync` from the CLI. On the first read, macOS asks to let your terminal control Things 3 (System Settings → Privacy & Security → Automation); allow it.
 
 To disconnect, set `"sync": false` or remove the entry, and delete `~/.dibs/adapters/things.json`. Tasks already synced stay on both sides.
 

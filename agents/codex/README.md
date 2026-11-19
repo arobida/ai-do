@@ -2,7 +2,7 @@
 
 Requires [Bun](https://bun.sh); the CLI runs as `bunx @dibs.ai/dibs`.
 
-## Install (skill)
+## Install
 
 ```sh
 bun run build:agent codex
@@ -20,11 +20,11 @@ Docs: https://developers.openai.com/codex/skills, https://developers.openai.com/
 
 ## Tools (MCP)
 
-Runs the CLI through `bunx` (needs [Bun](https://bun.sh)). Add this to `~/.codex/config.toml`:
+The MCP server runs the CLI through `bunx`. Add this to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.dibs]
 command = "bunx"
 args = ["@dibs.ai/dibs", "mcp"]
-env = { DIBS_TRUST = "1" }  # Codex does not pass your shell env. Omit this if the project has an .dibs folder
+env = { DIBS_TRUST = "1" }  # Codex does not pass your shell env. Omit it if the project has a .dibs folder
 ```

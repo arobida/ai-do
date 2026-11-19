@@ -4,6 +4,14 @@ This Claude Code plugin ships the shared `dibs` skill. It requires [Bun](https:/
 
 ## Install
 
+```
+/plugin install dibs --marketplace arobida/dibs
+```
+
+That needs Claude Code 2.1.275 or later. On older versions, run `/plugin marketplace add arobida/dibs`, then `/plugin install dibs@dibs`. The remote install ships the skill and the MCP tools but not the task panel.
+
+To install from a checkout, with the panel:
+
 ```sh
 # 1. Build the plugin into dist/claude-code
 bun run build:agent claude-code
@@ -17,7 +25,7 @@ Verify with `claude plugin validate dist/claude-code`, then restart Claude Code 
 
 ## Tools (MCP)
 
-Runs the CLI through `bunx` (needs [Bun](https://bun.sh)). Add this to `.mcp.json`:
+The plugin registers the MCP server. To add it without the plugin, put this in `.mcp.json`:
 
 ```json
 {"mcpServers":{"dibs":{"command":"bunx","args":["@dibs.ai/dibs","mcp"]}}}
@@ -29,4 +37,4 @@ A live task panel sits above the prompt. It shows the panel title, then each tas
 
 Use `/todos` to cycle views, `/todos current|project|completed` to pick one, and `/todos toggle` to collapse or expand the panel.
 
-Requires Claude Code v2.1.287+ and [Bun](https://bun.sh). If the CLI fails, the panel is hidden.
+The panel needs Claude Code 2.1.287 or later. If the CLI fails, the panel is hidden.
