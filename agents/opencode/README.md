@@ -1,6 +1,6 @@
 # dibs for opencode
 
-opencode loads skills from `skills/<id>/SKILL.md`, so it uses the shared `dibs` skill unchanged. The skill calls the CLI, so `dibs` must be on your PATH.
+opencode loads skills from `skills/<id>/SKILL.md`, so it uses the shared `dibs` skill unchanged. The skill calls the CLI, which runs as `bunx @dibs.ai/dibs` if `dibs` is not on your PATH.
 
 ## Install
 
@@ -22,15 +22,15 @@ Docs: https://opencode.ai/docs/skills/ (opencode also scans `.claude/skills` and
 
 ## Tools (MCP)
 
-Requires `dibs` on your PATH (install it with `bun i -g @dibs.ai/dibs`). Add this to `opencode.json`:
+Runs the CLI through `bunx` (needs [Bun](https://bun.sh)). Add this to `opencode.json`:
 
 ```json
-{"mcp":{"dibs":{"type":"local","command":["dibs","mcp"]}}}
+{"mcp":{"dibs":{"type":"local","command":["bunx","@dibs.ai/dibs","mcp"]}}}
 ```
 
 ## Task panel
 
-A live task panel (views `current`/`project`/`completed`, like the Pi panel) shown above the prompt. Needs `dibs` on your PATH (`bun i -g @dibs.ai/dibs`); this package does not install it. It is a TUI-only plugin, so add it to `cli.json` (docs: https://opencode.ai/docs/cli/plugins):
+A live task panel (views `current`/`project`/`completed`, like the Pi panel) shown above the prompt. Runs `bunx @dibs.ai/dibs`, so it needs [Bun](https://bun.sh). It is a TUI-only plugin, so add it to `cli.json` (docs: https://opencode.ai/docs/cli/plugins):
 
 ```json
 { "plugins": ["/absolute/path/to/dibs/agents/opencode/plugin/tui.tsx"] }

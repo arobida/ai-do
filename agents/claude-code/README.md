@@ -1,17 +1,14 @@
 # dibs for Claude Code
 
-This Claude Code plugin ships the shared `dibs` skill. It requires the `dibs` CLI on your PATH.
+This Claude Code plugin ships the shared `dibs` skill. It requires [Bun](https://bun.sh); the CLI runs as `bunx @dibs.ai/dibs`.
 
 ## Install
 
 ```sh
-# 1. CLI on PATH (or `bun link` from the repo root)
-bun i -g @dibs.ai/dibs
-
-# 2. Build the plugin into dist/claude-code
+# 1. Build the plugin into dist/claude-code
 bun run build:agent claude-code
 
-# 3. Add the local marketplace and install
+# 2. Add the local marketplace and install
 claude plugin marketplace add ./dist/claude-code
 claude plugin install dibs@dibs
 ```
@@ -20,10 +17,10 @@ Verify with `claude plugin validate dist/claude-code`, then restart Claude Code 
 
 ## Tools (MCP)
 
-Requires `dibs` on your PATH (install it with `bun i -g @dibs.ai/dibs`). Add this to `.mcp.json`:
+Runs the CLI through `bunx` (needs [Bun](https://bun.sh)). Add this to `.mcp.json`:
 
 ```json
-{"mcpServers":{"dibs":{"command":"dibs","args":["mcp"]}}}
+{"mcpServers":{"dibs":{"command":"bunx","args":["@dibs.ai/dibs","mcp"]}}}
 ```
 
 ## Task panel
@@ -32,4 +29,4 @@ A live task panel sits above the prompt. It shows the panel title, then each tas
 
 Use `/todos` to cycle views, `/todos current|project|completed` to pick one, and `/todos toggle` to collapse or expand the panel.
 
-Requires Claude Code v2.1.287+ and `dibs` on your PATH. If `dibs` fails, the panel is hidden.
+Requires Claude Code v2.1.287+ and [Bun](https://bun.sh). If the CLI fails, the panel is hidden.

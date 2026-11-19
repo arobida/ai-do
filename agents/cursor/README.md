@@ -1,6 +1,6 @@
 # dibs for Cursor
 
-Cursor reads `SKILL.md` skills from `.cursor/skills/` (project) or `~/.cursor/skills/` (user), so it uses the shared skill unchanged. It requires the `dibs` CLI on your PATH.
+Cursor reads `SKILL.md` skills from `.cursor/skills/` (project) or `~/.cursor/skills/` (user), so it uses the shared skill unchanged. The skill runs the CLI as `bunx @dibs.ai/dibs` when `dibs` is not on your PATH.
 
 ## Install
 
@@ -28,8 +28,8 @@ Docs: https://cursor.com/docs/context/skills
 
 ## Tools (MCP)
 
-Requires `dibs` on your PATH (install it with `bun i -g @dibs.ai/dibs`). Add this to `.cursor/mcp.json`:
+Runs the CLI through `bunx` (needs [Bun](https://bun.sh)). Add this to `.cursor/mcp.json`:
 
 ```json
-{"mcpServers":{"dibs":{"command":"dibs","args":["mcp"]}}}
+{"mcpServers":{"dibs":{"command":"bunx","args":["@dibs.ai/dibs","mcp"]}}}
 ```

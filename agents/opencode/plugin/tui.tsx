@@ -22,8 +22,8 @@ export default Plugin.define({
 		const cwd = (context.location as any)?.directory ?? process.cwd()
 
 		const refresh = () => {
-			const args = ["panel", view(), "--json", ...(mine.size ? ["--mine", [...mine].join(",")] : [])]
-			execFile("dibs", args, { cwd }, (err, out) => {
+			const args = ["@dibs.ai/dibs", "panel", view(), "--json", ...(mine.size ? ["--mine", [...mine].join(",")] : [])]
+			execFile("bunx", args, { cwd }, (err, out) => {
 				if (err) return setPanel(null) // fail silently
 				try { setPanel(JSON.parse(out)) } catch { setPanel(null) }
 			})

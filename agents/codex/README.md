@@ -1,6 +1,6 @@
 # dibs for Codex CLI
 
-Requires the `dibs` CLI on your PATH (`dibs --help` must work).
+Requires [Bun](https://bun.sh); the CLI runs as `bunx @dibs.ai/dibs`.
 
 ## Install (skill)
 
@@ -20,11 +20,11 @@ Docs: https://developers.openai.com/codex/skills, https://developers.openai.com/
 
 ## Tools (MCP)
 
-Requires `dibs` on your PATH (install it with `bun i -g @dibs.ai/dibs`). Add this to `~/.codex/config.toml`:
+Runs the CLI through `bunx` (needs [Bun](https://bun.sh)). Add this to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.dibs]
-command = "dibs"
-args = ["mcp"]
+command = "bunx"
+args = ["@dibs.ai/dibs", "mcp"]
 env = { DIBS_TRUST = "1" }  # Codex does not pass your shell env. Omit this if the project has an .dibs folder
 ```
