@@ -39,9 +39,7 @@
     "build:agent": "bun scripts/build-agent.ts",
     "pack:check": "bun pm pack --dry-run",
     "release": "bun scripts/release.ts",
-    "preversion": "bun test",
-    "version": "jq --arg v \"$npm_new_version\" \".version = \\$v\" jsr.json > jsr.tmp && mv jsr.tmp jsr.json && git add jsr.json",
-    "postversion": "git push --follow-tags && bun run release"
+    "bump": "bun scripts/bump.ts"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "^1.5.2",
