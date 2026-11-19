@@ -22,7 +22,7 @@ Docs: https://opencode.ai/docs/skills/ (opencode also scans `.claude/skills` and
 
 ## Tools (MCP)
 
-Requires `dibs` on your PATH (for example, after `bun link`). Add this to `opencode.json`:
+Requires `dibs` on your PATH (install it with `bun i -g @dibs.ai/dibs`). Add this to `opencode.json`:
 
 ```json
 {"mcp":{"dibs":{"type":"local","command":["dibs","mcp"]}}}
@@ -30,7 +30,7 @@ Requires `dibs` on your PATH (for example, after `bun link`). Add this to `openc
 
 ## Task panel
 
-A live task panel (views `current`/`project`/`completed`, like the Pi panel) shown above the prompt. Needs `dibs` on your PATH. It is a TUI-only plugin, so add it to `cli.json` (docs: https://opencode.ai/docs/cli/plugins):
+A live task panel (views `current`/`project`/`completed`, like the Pi panel) shown above the prompt. Needs `dibs` on your PATH (`bun i -g @dibs.ai/dibs`); this package does not install it. It is a TUI-only plugin, so add it to `cli.json` (docs: https://opencode.ai/docs/cli/plugins):
 
 ```json
 { "plugins": ["/absolute/path/to/dibs/agents/opencode/plugin/tui.tsx"] }

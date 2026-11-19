@@ -18,13 +18,19 @@ A task store for coding agents. In Pi it adds task tools and a panel above the e
 
 ## Installation
 
-Once published:
+Pi loads dibs as a library, so it needs only its package:
 
 ```sh
 pi install @dibs.ai/pi
 ```
 
-Until then, install from a local checkout (see [Contributing](CONTRIBUTING.md)).
+Every other agent runs the `dibs` CLI, so install it first:
+
+```sh
+bun i -g @dibs.ai/dibs
+```
+
+The agent packages do not put `dibs` on your PATH: `@dibs.ai/opencode` does not depend on core, and a global install of `@dibs.ai/pi` links only its own commands, of which it has none. To work from a checkout instead, see [Contributing](CONTRIBUTING.md).
 
 ## Usage
 

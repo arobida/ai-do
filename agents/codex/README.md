@@ -20,7 +20,7 @@ Docs: https://developers.openai.com/codex/skills, https://developers.openai.com/
 
 ## Tools (MCP)
 
-Requires `dibs` on your PATH (for example, after `bun link`). Add this to `~/.codex/config.toml`:
+Requires `dibs` on your PATH (install it with `bun i -g @dibs.ai/dibs`). Add this to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.dibs]

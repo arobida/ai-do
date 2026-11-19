@@ -28,7 +28,7 @@ Docs: https://cursor.com/docs/context/skills
 
 ## Tools (MCP)
 
-Requires `dibs` on your PATH (for example, after `bun link`). Add this to `.cursor/mcp.json`:
+Requires `dibs` on your PATH (install it with `bun i -g @dibs.ai/dibs`). Add this to `.cursor/mcp.json`:
 
 ```json
 {"mcpServers":{"dibs":{"command":"dibs","args":["mcp"]}}}

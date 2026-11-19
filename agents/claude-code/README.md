@@ -5,8 +5,8 @@ This Claude Code plugin ships the shared `dibs` skill. It requires the `dibs` CL
 ## Install
 
 ```sh
-# 1. CLI on PATH (from the repo root: `bun link`, or `bun add -g @dibs.ai/dibs`)
-bun link
+# 1. CLI on PATH (or `bun link` from the repo root)
+bun i -g @dibs.ai/dibs
 
 # 2. Build the plugin into dist/claude-code
 bun run build:agent claude-code
@@ -20,7 +20,7 @@ Verify with `claude plugin validate dist/claude-code`, then restart Claude Code 
 
 ## Tools (MCP)
 
-Requires `dibs` on your PATH (for example, after `bun link`). Add this to `.mcp.json`:
+Requires `dibs` on your PATH (install it with `bun i -g @dibs.ai/dibs`). Add this to `.mcp.json`:
 
 ```json
 {"mcpServers":{"dibs":{"command":"dibs","args":["mcp"]}}}
