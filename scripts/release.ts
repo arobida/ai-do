@@ -36,5 +36,5 @@ for (const dir of dirs) {
 for (const dir of ["."]) {
 	const { name, version } = JSON.parse(await readFile(`${dir}/jsr.json`, "utf8"));
 	if (await jsrLive(name, version)) { console.log(`jsr ${name}@${version}: already published, skipping`); continue; }
-	await $`nub dlx jsr publish --allow-slow-types ${jsrToken ? ["--token", jsrToken] : []}`.cwd(dir);
+	await $`nub dlx jsr publish ${jsrToken ? ["--token", jsrToken] : []}`.cwd(dir);
 }
