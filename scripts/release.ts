@@ -13,7 +13,9 @@ const jsrToken = process.env.JSR_TOKEN ?? (process.argv.includes("--jsr") ? (awa
 const npmLive = async (name: string, version: string, tries = 1) => {
 	for (let i = 0; i < tries; i++) {
 		if (i) await sleep(3000); // a token publish is staged and goes live after about two minutes
-		if ((await $`nub view ${name}@${version} version`.quiet().noThrow()).stdout.trim() === version) return true;
+		// ask the registry directly: nub view serves cached metadata and misses a fresh publish for minutes
+		const meta = await fetch(`https://registry.npmjs.org/${name.replace("/", "%2F")}`, { headers: { "cache-control": "no-cache" } });
+		if (meta.ok && version in ((await meta.json()).versions ?? {})) return true;
 	}
 	return false;
 };
