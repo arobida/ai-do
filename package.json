@@ -24,21 +24,24 @@
     "things"
   ],
   "bin": {
-    "dibs": "./src/cli/index.ts"
+    "dibs": "./lib/cli/index.js"
   },
   "files": [
-    "src/",
+    "lib/",
+    "src/core/adapters/*/*.schema.json",
     "schema.json",
     "README.md",
     "CHANGELOG.md"
   ],
   "scripts": {
     "test": "vitest run",
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "nub run build",
     "check": "tsc && vitest run",
-    "build:agent": "bun scripts/build-agent.ts",
-    "pack:check": "bun pm pack --dry-run",
-    "release": "bun scripts/release.ts",
-    "bump": "bun scripts/bump.ts"
+    "build:agent": "nub scripts/build-agent.ts",
+    "pack:check": "nub pack --dry-run",
+    "release": "nub scripts/release.ts",
+    "bump": "nub scripts/bump.ts"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "^1.5.2",
@@ -77,8 +80,14 @@
     "url": "https://github.com/arobida/dibs/issues"
   },
   "exports": {
-    ".": "./src/core/tasks.ts",
-    "./core/*": "./src/core/*"
+    ".": {
+      "types": "./lib/core/tasks.d.ts",
+      "default": "./lib/core/tasks.js"
+    },
+    "./core/*.ts": {
+      "types": "./lib/core/*.d.ts",
+      "default": "./lib/core/*.js"
+    }
   },
   "devEngines": {
     "packageManager": {

@@ -6,7 +6,10 @@
     "module": "nodenext",
     "target": "es2022",
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node"],
+    "jsx": "preserve",
+    "jsxImportSource": "@opentui/solid"
   },
-  "include": ["src", "agents", "test", "scripts"]
+  "include": ["src", "agents", "test", "scripts"],
+  "exclude": ["agents/claude-code"]
 }

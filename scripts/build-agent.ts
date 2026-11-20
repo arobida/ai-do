@@ -1,7 +1,7 @@
 import { cpSync, existsSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-export function build(name: string, root = resolve(import.meta.dir, "..")) {
+export function build(name: string, root = resolve(import.meta.dirname, "..")) {
 	if (name === "shared" || !existsSync(join(root, "agents", name))) throw new Error(`unknown agent: ${name}`);
 	const out = join(root, "dist", name);
 	rmSync(out, { recursive: true, force: true });
