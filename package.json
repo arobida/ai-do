@@ -3,7 +3,6 @@
   "version": "0.1.3",
   "description": "Shared task store for coding agents: CLI, MCP server and todo.txt, with plugins for Claude Code, opencode, Pi, Codex and Cursor.",
   "type": "module",
-  "packageManager": "bun@1.4.4",
   "keywords": [
     "dibs",
     "ai-agents",
@@ -44,9 +43,11 @@
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "^1.5.2",
     "@earendil-works/pi-tui": "^1.5.2",
-    "@types/bun": "^1.4.4",
+    "@types/node": "^26.6.6",
+    "dax": "^0.50.2",
     "typebox": "^1.4.7",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
   },
   "license": "MIT",
   "author": {
@@ -54,7 +55,7 @@
     "url": "https://github.com/arobida"
   },
   "engines": {
-    "bun": ">=1.4"
+    "node": ">=26"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
@@ -78,5 +79,16 @@
   "exports": {
     ".": "./src/core/tasks.ts",
     "./core/*": "./src/core/*"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "nub",
+      "version": "^0.11.1",
+      "onFail": "ignore"
+    }
+  },
+  "allowScripts": {
+    "@google/genai": false,
+    "protobufjs": false
   }
 }

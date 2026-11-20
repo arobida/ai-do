@@ -12,7 +12,7 @@ Goal: `npx @dibs.ai/dibs <cmd>` works on a machine that has Node and nothing els
 - **Build with `tsc`,** already a devDependency: no new bundler. `tsconfig.build.json` sets `rootDir: src`, `outDir: lib`, `rewriteRelativeImportExtensions` and `declaration`. `lib/core/store.js` still reads `../../package.json`, so it needs no change.
 - **Tests move to Vitest.** It keeps `expect`, `test.skipIf` and module mocks (`mock.module` becomes `vi.mock`), so most test files change only their import. With `node:test`, every assertion would need rewriting.
 - **`Bun.$` in scripts becomes `dax`** (devDependency), as the guide recommends; the call sites keep their shape.
-- **Keep `bun.lock`.** Nub reads and writes it unchanged (https://nubjs.com/docs/install/bun). Drop `packageManager: bun@…`.
+- **Replace `bun.lock` with `nub.lock`** (`nub pm use nub`). Nub 0.11.1 cannot parse the `dibs@root:` entry that Bun writes for `agents/pi`'s `workspace:*` dependency on the root package (`ERR_NUB_LOCKFILE_UNSUPPORTED_SOURCE`), and `nub import` fails on the same entry. Build scripts of `@google/genai` and `protobufjs` (transitive, from the Pi and opencode SDKs) are denied in `allowScripts`; Bun never ran them either.
 - **`bunx @dibs.ai/dibs` becomes `npx -y @dibs.ai/dibs`** everywhere users or agents run the CLI.
 
 ## Bun usage to replace

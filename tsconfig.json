@@ -6,7 +6,7 @@
     "module": "nodenext",
     "target": "es2022",
     "skipLibCheck": true,
-    "types": ["bun"]
+    "types": ["node"]
   },
   "include": ["src", "agents", "test", "scripts"]
 }
