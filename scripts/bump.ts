@@ -14,9 +14,9 @@ if (await jsr.exists()) {
 	await Bun.write(jsr, JSON.stringify({ ...(await jsr.json()), version }, null, 2) + "\n");
 	files.push(`${dir}/jsr.json`);
 }
-// Stage only the version files so wt's generated message covers just the bump.
+// Fixed message: a release must not depend on an LLM call succeeding.
 await $`git add ${files}`;
-await $`wt step commit --stage none`;
+await $`git commit -m ${`Release ${name}@${version}`} -- ${files}`;
 await $`git tag -a ${name}@${version} -m ${name}@${version}`;
 await $`git push --follow-tags`;
 await $`bun scripts/release.ts`;

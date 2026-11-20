@@ -53,7 +53,7 @@ The package is MIT licensed (see `LICENSE`), and contributions fall under the sa
 bun run bump <patch|minor|major|x.y.z> [. | agents/pi | agents/opencode]
 ```
 
-The package directory defaults to `.`. [`scripts/bump.ts`](scripts/bump.ts) requires a clean tree, runs the tests, bumps `package.json` and `jsr.json`, commits with `wt step commit`, tags `<name>@<version>`, pushes, and runs [`scripts/release.ts`](scripts/release.ts). That publishes the package to npm, and the core package to JSR too.
+The package directory defaults to `.`. [`scripts/bump.ts`](scripts/bump.ts) requires a clean tree, runs the tests, bumps `package.json` and `jsr.json`, commits `Release <name>@<version>`, tags `<name>@<version>`, pushes, and runs [`scripts/release.ts`](scripts/release.ts). That publishes the package to npm, and the core package to JSR too; run `npm login` first. If publishing fails, fix the cause and run `bun run release`: it skips versions already live and fails loudly on any that did not publish.
 
 Configs point `$schema` at `https://raw.githubusercontent.com/arobida/dibs/@dibs.ai/dibs@<version>/schema.json` ([`src/core/store.ts`](src/core/store.ts)), the core package's release tag, so that URL returns 404 until the tag is pushed.
 
