@@ -5,11 +5,13 @@ import { setTimeout as sleep } from "node:timers/promises";
 
 const dirs = [".", "agents/pi", "agents/opencode"];
 // An expired npm token makes publish fail with a misleading 404, so check the login first.
-if ((await $`npm whoami`.quiet().noThrow()).code) throw new Error("not logged in to npm: run `npm login`");
+if ((await $`nub whoami`.quiet().noThrow()).code) throw new Error("not logged in to npm: run `nub login`");
+// A package that requires 2FA stages a token-only publish instead of releasing it, so pass the code: NPM_OTP=123456 nub run release
+const otp = process.env.NPM_OTP ? ["--otp", process.env.NPM_OTP] : [];
 const npmLive = async (name: string, version: string, tries = 1) => {
 	for (let i = 0; i < tries; i++) {
 		if (i) await sleep(3000); // the registry can lag a few seconds behind a publish
-		if ((await $`npm view ${name}@${version} version --prefer-online`.quiet().noThrow()).stdout.trim() === version) return true;
+		if ((await $`nub view ${name}@${version} version`.quiet().noThrow()).stdout.trim() === version) return true;
 	}
 	return false;
 };
@@ -21,8 +23,8 @@ const jsrLive = async (name: string, version: string) => {
 for (const dir of dirs) {
 	const { name, version } = JSON.parse(await readFile(`${dir}/package.json`, "utf8"));
 	if (await npmLive(name, version)) { console.log(`npm ${name}@${version}: already published, skipping`); continue; }
-	await $`nub publish --access public`.cwd(dir).noThrow(); // exits 1 even after a browser-approved publish, so check the registry instead
-	if (!(await npmLive(name, version, 5))) throw new Error(`npm ${name}@${version} did not publish`);
+	await $`nub publish --access public ${otp}`.cwd(dir).noThrow(); // trust the registry, not the exit code
+	if (!(await npmLive(name, version, 5))) throw new Error(`npm ${name}@${version} did not publish; if 2FA is required, rerun with NPM_OTP=<code> nub run release`);
 }
 
 // Only core goes to JSR: Pi and opencode install plugins from npm, and JSR can't resolve their host-provided imports.
