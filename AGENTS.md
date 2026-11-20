@@ -6,22 +6,6 @@
 - When creating an implementation/action plan, split it into small tasks and delegate them to subagents on smaller models (e.g. Haiku/Sonnet) with low or no thinking. You review and test their output before moving on.
 - Load the `technical-writing` skill (`.agents/skills/technical-writing`) before writing or editing any docs (README, CONTRIBUTING, CHANGELOG, agent READMEs, SKILL.md).
 
-## Code Search
+## Code search
 
-Use `semble search` to find code by describing what it does or naming a symbol, instead of grep:
-
-```bash
-semble search "authentication flow" ./my-project
-semble search "save_pretrained" ./my-project
-semble search "save model to disk" ./my-project --top-k 10
-```
-
-Use `semble find-related` to discover code similar to a known location (pass `file_path` and `line` from a prior search result):
-
-```bash
-semble find-related src/auth.py 42 ./my-project
-```
-
-`path` defaults to the current directory when omitted; git URLs are accepted.
-
-If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
+Use `semble search` (see the semble skill) instead of grep. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble`.
