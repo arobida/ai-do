@@ -8,6 +8,8 @@ const dirs = [".", "agents/pi", "agents/opencode"];
 if ((await $`nub whoami`.quiet().noThrow()).code) throw new Error("not logged in to npm: run `nub login`");
 // A package that requires 2FA stages a token-only publish instead of releasing it, so pass the code: NPM_OTP=123456 nub run release
 const otp = process.env.NPM_OTP ? ["--otp", process.env.NPM_OTP] : [];
+// JSR has no stored login: pass JSR_TOKEN, or --jsr to read it from the macOS Keychain (security add-generic-password -U -a "$USER" -s jsr-token -w)
+const jsrToken = process.env.JSR_TOKEN ?? (process.argv.includes("--jsr") ? (await $`security find-generic-password -s jsr-token -w`.text()).trim() : "");
 const npmLive = async (name: string, version: string, tries = 1) => {
 	for (let i = 0; i < tries; i++) {
 		if (i) await sleep(3000); // a token publish is staged and goes live after about two minutes
@@ -32,5 +34,5 @@ for (const dir of dirs) {
 for (const dir of ["."]) {
 	const { name, version } = JSON.parse(await readFile(`${dir}/jsr.json`, "utf8"));
 	if (await jsrLive(name, version)) { console.log(`jsr ${name}@${version}: already published, skipping`); continue; }
-	await $`nub dlx jsr publish --allow-slow-types`.cwd(dir);
+	await $`nub dlx jsr publish --allow-slow-types ${jsrToken ? ["--token", jsrToken] : []}`.cwd(dir);
 }
