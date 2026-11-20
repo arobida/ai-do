@@ -10,7 +10,7 @@ if ((await $`nub whoami`.quiet().noThrow()).code) throw new Error("not logged in
 const otp = process.env.NPM_OTP ? ["--otp", process.env.NPM_OTP] : [];
 const npmLive = async (name: string, version: string, tries = 1) => {
 	for (let i = 0; i < tries; i++) {
-		if (i) await sleep(3000); // the registry can lag a few seconds behind a publish
+		if (i) await sleep(3000); // a token publish is staged and goes live after about two minutes
 		if ((await $`nub view ${name}@${version} version`.quiet().noThrow()).stdout.trim() === version) return true;
 	}
 	return false;
@@ -24,7 +24,7 @@ for (const dir of dirs) {
 	const { name, version } = JSON.parse(await readFile(`${dir}/package.json`, "utf8"));
 	if (await npmLive(name, version)) { console.log(`npm ${name}@${version}: already published, skipping`); continue; }
 	await $`nub publish --access public ${otp}`.cwd(dir).noThrow(); // trust the registry, not the exit code
-	if (!(await npmLive(name, version, 5))) throw new Error(`npm ${name}@${version} did not publish; if 2FA is required, rerun with NPM_OTP=<code> nub run release`);
+	if (!(await npmLive(name, version, 60))) throw new Error(`npm ${name}@${version} did not publish; if 2FA is required, rerun with NPM_OTP=<code> nub run release`);
 }
 
 // Only core goes to JSR: Pi and opencode install plugins from npm, and JSR can't resolve their host-provided imports.
