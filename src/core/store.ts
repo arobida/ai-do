@@ -6,9 +6,9 @@ import { createHash, randomUUID } from "node:crypto";
 import { home, readJsonl } from "./util.ts";
 import { findId, runFile } from "./tasks.ts";
 
-const { version } = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
-// Pinned to this install's version so editors validate against the options it supports. Tag v<version> on release.
-export const schemaUrl = `https://raw.githubusercontent.com/arobida/dibs/v${version}/schema.json`;
+const { name, version } = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
+// Pinned to this install's version so editors validate against the options it supports. scripts/bump.ts tags releases <name>@<version>.
+export const schemaUrl = `https://raw.githubusercontent.com/arobida/dibs/${name}@${version}/schema.json`;
 
 // JSONC: drops comments, then trailing commas (second pass catches a comma that sat before a comment); strings are kept as-is.
 const stripJsonc = (t: string) => t.replace(/("(?:\\.|[^"\\])*")|\/\/[^\n]*|\/\*[\s\S]*?\*\/|,(\s*[}\]])/g, (_m, str, close) => str ?? close ?? "");

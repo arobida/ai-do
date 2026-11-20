@@ -356,7 +356,8 @@ test("config.json is JSONC, keeps $schema on this version", async () => {
  const { join } = await import("node:path");
  const { readConfig, schemaUrl } = await import("../src/core/store.ts");
  const dir = mkdtempSync(join(tmpdir(), "dibs-jsonc-"));
- expect(schemaUrl).toEndWith(`/v${JSON.parse(readFileSync("package.json", "utf8")).version}/schema.json`);
+		const { name, version } = JSON.parse(readFileSync("package.json", "utf8"));
+		expect(schemaUrl).toEndWith(`/${name}@${version}/schema.json`);
  // Comments, trailing commas and "//" inside strings; an old $schema is bumped without losing comments.
  writeFileSync(join(dir, "config.json"), '{\n  "$schema": "https://x/v0.0.1/schema.json", // old\n  /* note */ "file": "~/a//b.jsonl",\n}\n');
  expect(readConfig(dir)).toMatchObject({ file: "~/a//b.jsonl" });
