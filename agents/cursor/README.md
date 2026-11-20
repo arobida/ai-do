@@ -1,13 +1,13 @@
 # dibs for Cursor
 
-Cursor reads `SKILL.md` skills from `.cursor/skills/` (project) or `~/.cursor/skills/` (user), so it uses the shared skill unchanged. The skill runs the CLI as `bunx @dibs.ai/dibs` when `dibs` is not on your PATH.
+Cursor reads `SKILL.md` skills from `.cursor/skills/` (project) or `~/.cursor/skills/` (user), so it uses the shared skill unchanged. The skill runs the CLI as `npx -y @dibs.ai/dibs` when `dibs` is not on your PATH.
 
 ## Install
 
 From the dibs repo:
 
 ```sh
-bun run build:agent cursor
+nub run build:agent cursor
 ```
 
 Project install (run in your project root):
@@ -28,8 +28,8 @@ Docs: https://cursor.com/docs/context/skills
 
 ## Tools (MCP)
 
-The MCP server runs the CLI through `bunx`. Add this to `.cursor/mcp.json`:
+The MCP server runs the CLI through `npx -y`. Add this to `.cursor/mcp.json`:
 
 ```json
-{"mcpServers":{"dibs":{"command":"bunx","args":["@dibs.ai/dibs","mcp"]}}}
+{"mcpServers":{"dibs":{"command":"npx","args":["-y","@dibs.ai/dibs","mcp"]}}}
 ```

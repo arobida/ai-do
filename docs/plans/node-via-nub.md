@@ -1,6 +1,6 @@
 # Plan: run dibs on Node, developed with Nub
 
-Status: plan (2026-11-20). Follows AGENTS.md: small tasks, each delegated to a Haiku/Sonnet subagent (low/no thinking). The lead reviews each diff and runs the tests before starting the next task. Commit each task with `wt step commit`.
+Status: done (2026-11-20). Follows AGENTS.md: small tasks, each delegated to a Haiku/Sonnet subagent (low/no thinking). The lead reviews each diff and runs the tests before starting the next task. Commit each task with `wt step commit`.
 
 Goal: `npx @dibs.ai/dibs <cmd>` works on a machine that has Node and nothing else. Contributors develop with Nub (`nub <file>`, `nub run`, `nub install`), following https://nubjs.com/guides/bun-to-nub.
 

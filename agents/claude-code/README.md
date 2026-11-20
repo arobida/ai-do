@@ -1,6 +1,6 @@
 # dibs for Claude Code
 
-This Claude Code plugin ships the shared `dibs` skill. It requires [Bun](https://bun.sh); the CLI runs as `bunx @dibs.ai/dibs`.
+This Claude Code plugin ships the shared `dibs` skill. It requires Node 26+; the CLI runs as `npx -y @dibs.ai/dibs`.
 
 ## Install
 
@@ -14,7 +14,7 @@ To install from a checkout, with the panel:
 
 ```sh
 # 1. Build the plugin into dist/claude-code
-bun run build:agent claude-code
+nub run build:agent claude-code
 
 # 2. Add the local marketplace and install
 claude plugin marketplace add ./dist/claude-code
@@ -28,7 +28,7 @@ Verify with `claude plugin validate dist/claude-code`, then restart Claude Code 
 The plugin registers the MCP server. To add it without the plugin, put this in `.mcp.json`:
 
 ```json
-{"mcpServers":{"dibs":{"command":"bunx","args":["@dibs.ai/dibs","mcp"]}}}
+{"mcpServers":{"dibs":{"command":"npx","args":["-y","@dibs.ai/dibs","mcp"]}}}
 ```
 
 ## Task panel

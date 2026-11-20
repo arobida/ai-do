@@ -10,7 +10,7 @@ Syncs the dibs store with [Dex](https://github.com/dcramer/dex) through the `dex
    ```json
    {"adapters": {"dex": {"sync": true}}}
    ```
-4. Run `/reload` in Pi, or `bunx @dibs.ai/dibs sync` from the CLI. Existing Dex tasks are pulled into dibs on the first sync, and dibs tasks are pushed to Dex.
+4. Run `/reload` in Pi, or `npx -y @dibs.ai/dibs sync` from the CLI. Existing Dex tasks are pulled into dibs on the first sync, and dibs tasks are pushed to Dex.
 
 To disconnect, set `"sync": false` or remove the entry. Tasks already synced stay on both sides.
 

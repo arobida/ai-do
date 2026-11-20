@@ -1,11 +1,11 @@
 # dibs for opencode
 
-opencode loads skills from `skills/<id>/SKILL.md`, so it uses the shared `dibs` skill unchanged. The skill calls the CLI, which runs as `bunx @dibs.ai/dibs` if `dibs` is not on your PATH.
+opencode loads skills from `skills/<id>/SKILL.md`, so it uses the shared `dibs` skill unchanged. The skill calls the CLI, which runs as `npx -y @dibs.ai/dibs` if `dibs` is not on your PATH.
 
 ## Install
 
 ```sh
-bun run build:agent opencode        # writes dist/opencode/skills/dibs/SKILL.md
+nub run build:agent opencode        # writes dist/opencode/skills/dibs/SKILL.md
 
 # project-local
 mkdir -p .opencode/skills && cp -R dist/opencode/skills/dibs .opencode/skills/
@@ -22,10 +22,10 @@ Docs: https://opencode.ai/docs/skills/ (opencode also scans `.claude/skills` and
 
 ## Tools (MCP)
 
-The MCP server runs the CLI through `bunx`. Add this to `opencode.json`:
+The MCP server runs the CLI through `npx -y`. Add this to `opencode.json`:
 
 ```json
-{"mcp":{"dibs":{"type":"local","command":["bunx","@dibs.ai/dibs","mcp"]}}}
+{"mcp":{"dibs":{"type":"local","command":["npx","-y","@dibs.ai/dibs","mcp"]}}}
 ```
 
 ## Task panel
@@ -36,6 +36,6 @@ A live task panel (views `current`/`project`/`completed`, like the Pi panel) sho
 { "plugins": ["/absolute/path/to/dibs/agents/opencode/plugin/tui.tsx"] }
 ```
 
-Local plugin entries are documented as directories or package names; if the file path is rejected, point at `/absolute/path/to/dibs/agents/opencode` (its `package.json` exports `./tui`). Install peers there first: `cd agents/opencode && bun add @opencode/plugin @opentui/core @opentui/solid solid-js`.
+Local plugin entries are documented as directories or package names; if the file path is rejected, point at `/absolute/path/to/dibs/agents/opencode` (its `package.json` exports `./tui`). Install peers there first: `cd agents/opencode && nub add @opencode/plugin @opentui/core @opentui/solid solid-js`.
 
 Keys: `ctrl+shift+v` cycles the view, `ctrl+shift+t` collapses (also `/tasks-view`, `/tasks-toggle`, and the command palette). The panel refreshes every 3 s and after any event mentioning a `todo_*` tool. Not verified against a running opencode.

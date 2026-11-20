@@ -1,11 +1,11 @@
 # dibs for Codex CLI
 
-Requires [Bun](https://bun.sh); the CLI runs as `bunx @dibs.ai/dibs`.
+Requires Node 26+; the CLI runs as `npx -y @dibs.ai/dibs`.
 
 ## Install
 
 ```sh
-bun run build:agent codex
+nub run build:agent codex
 mkdir -p ~/.agents/skills
 cp -R dist/codex/skills/dibs ~/.agents/skills/   # or: ln -s "$PWD/dist/codex/skills/dibs" ~/.agents/skills/dibs
 ```
@@ -20,11 +20,11 @@ Docs: https://developers.openai.com/codex/skills, https://developers.openai.com/
 
 ## Tools (MCP)
 
-The MCP server runs the CLI through `bunx`. Add this to `~/.codex/config.toml`:
+The MCP server runs the CLI through `npx -y`. Add this to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.dibs]
-command = "bunx"
-args = ["@dibs.ai/dibs", "mcp"]
+command = "npx"
+args = ["-y", "@dibs.ai/dibs", "mcp"]
 env = { DIBS_TRUST = "1" }  # Codex does not pass your shell env. Omit it if the project has a .dibs folder
 ```

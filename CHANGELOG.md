@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Run the CLI on Node 26+: the package ships compiled JS in `lib/`, so `npx -y @dibs.ai/dibs` works without Bun.
+
+- Agent integrations and MCP configs call `npx -y @dibs.ai/dibs` instead of `bunx @dibs.ai/dibs`.
+
+- Contributors use Nub: `nub install`, `nub run test`, and `nub.lock` replaces `bun.lock`.
+
 - Add `dibs mcp`: an MCP server over stdio (`src/cli/mcp.ts`) with six tools, `todo_list`, `todo_create`, `todo_edit`, `todo_status`, `todo_link` and `todo_resolve`. The Claude Code plugin registers it; the Codex, opencode and Cursor READMEs show the config.
 
 - Add task attribution: `created_by` and `human` fields (todo.txt `dibsby:`/`dibshuman:`), `--human` on `create`/`edit`/`list`/`ready`, `DIBS_AGENT`/`DIBS_USER`, and `adapters.<name>.human` to sync only one human's tasks.

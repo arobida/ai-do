@@ -15,7 +15,7 @@ Syncs the dibs store with [Things 3](https://culturedcode.com/things/) on macOS.
    ```json
    {"adapters": {"things": {"sync": true}}}
    ```
-5. Run `/reload` in Pi, or `bunx @dibs.ai/dibs sync` from the CLI. On the first read, macOS asks to let your terminal control Things 3 (System Settings → Privacy & Security → Automation); allow it.
+5. Run `/reload` in Pi, or `npx -y @dibs.ai/dibs sync` from the CLI. On the first read, macOS asks to let your terminal control Things 3 (System Settings → Privacy & Security → Automation); allow it.
 
 To disconnect, set `"sync": false` or remove the entry, and delete `~/.dibs/adapters/things.json`. Tasks already synced stay on both sides.
 
