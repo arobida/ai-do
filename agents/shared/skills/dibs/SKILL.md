@@ -39,7 +39,7 @@ If Dex or Things sync is enabled in config, run `dibs sync` before reading tasks
 ## Rules
 
 - Prefix every command with `DIBS_AGENT=<your agent name>` (e.g. `DIBS_AGENT=claude-code dibs create ...`) so tasks record who created them.
-- If `dibs` is not on your PATH, run `bunx @dibs.ai/dibs` in its place (e.g. `bunx @dibs.ai/dibs list`).
+- If `dibs` is not on your PATH, run `npx -y @dibs.ai/dibs` in its place (e.g. `npx -y @dibs.ai/dibs list`).
 - Ids accept a unique prefix: `dibs start a1b` works when only one id starts with `a1b`.
 - Keep the name short. Put details, context, and acceptance criteria in `--description`.
 - Run `start` before you begin a task.

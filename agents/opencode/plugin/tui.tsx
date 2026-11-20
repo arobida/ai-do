@@ -23,7 +23,7 @@ export default Plugin.define({
 
 		const refresh = () => {
 			const args = ["@dibs.ai/dibs", "panel", view(), "--json", ...(mine.size ? ["--mine", [...mine].join(",")] : [])]
-			execFile("bunx", args, { cwd }, (err, out) => {
+			execFile("npx", ["-y", ...args], { cwd }, (err, out) => {
 				if (err) return setPanel(null) // fail silently
 				try { setPanel(JSON.parse(out)) } catch { setPanel(null) }
 			})

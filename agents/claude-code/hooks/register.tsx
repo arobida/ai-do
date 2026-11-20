@@ -26,7 +26,7 @@ async function userPath($: EngineInterface) {
 async function refresh($: EngineInterface) {
   const v = await read($, view)
   const ids = await read($, mine)
-  const argv = ['bunx', '@dibs.ai/dibs', 'panel', v, '--json', ...(ids.length ? ['--mine', ids.join(',')] : [])]
+  const argv = ['npx', '-y', '@dibs.ai/dibs', 'panel', v, '--json', ...(ids.length ? ['--mine', ids.join(',')] : [])]
   try {
     const { exitCode, stdout } = await $.process.run((p => (p ? ['/usr/bin/env', `PATH=${p}`, ...argv] : argv))(await userPath($)))
     if (exitCode !== 0) throw new Error('dibs failed')

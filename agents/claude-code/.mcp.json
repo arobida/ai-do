@@ -1,1 +1,1 @@
-{"mcpServers":{"dibs":{"command":"bunx","args":["@dibs.ai/dibs","mcp"]}}}
+{"mcpServers":{"dibs":{"command":"npx","args":["-y","@dibs.ai/dibs","mcp"]}}}
