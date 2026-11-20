@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -13,6 +13,7 @@ test("mcp server exposes the six task tools", async () => {
 		env: { ...process.env as Record<string, string>, DIBS_HOME: dir, DIBS_TRUST: "1", DIBS_SCOPE: "project", DIBS_SESSION: "mcp-test" },
 	}));
 	try {
+		expect(client.getServerVersion()?.version).toBe(JSON.parse(readFileSync(join(import.meta.dirname, "../package.json"), "utf8")).version);
 		const text = (r: any) => r.content[0].text as string;
 		expect((await client.listTools()).tools.map((t) => t.name).sort()).toEqual(["todo_create", "todo_edit", "todo_link", "todo_list", "todo_resolve", "todo_status"]);
 		const created = text(await client.callTool({ name: "todo_create", arguments: { name: "mcp thing", description: "" } }));

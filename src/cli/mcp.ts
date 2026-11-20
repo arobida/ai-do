@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { checkName } from "../core/todo.ts";
-import { link, resolveLink, settings, storeFile } from "../core/store.ts";
+import { link, resolveLink, settings, storeFile, version } from "../core/store.ts";
 import { agentName, ghUser } from "../core/identity.ts";
 import { runFile } from "../core/tasks.ts";
 import { syncAll } from "../core/adapters/sync-all.ts";
@@ -43,7 +43,7 @@ async function act(action: string, p: Record<string, any>): Promise<string> {
 }
 
 const Id = z.string().describe("Task id, or any unique prefix (e.g. a1b2c3 for proj-a1b2c3)");
-const server = new McpServer({ name: "dibs", version: "0.1.0" });
+const server = new McpServer({ name: "dibs", version });
 const tool = (name: string, description: string, inputSchema: z.ZodRawShape) => server.registerTool(name, { description, inputSchema }, async (params: any) => {
 	try { return { content: [{ type: "text" as const, text: await act(name.slice(5), { ...params }) }] }; }
 	catch (e: any) { return { content: [{ type: "text" as const, text: e.message ?? String(e) }], isError: true }; }
