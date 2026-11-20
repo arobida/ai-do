@@ -1,7 +1,9 @@
-import { expect, mock, test } from "bun:test";
+import { expect, vi, test } from "vitest";
+import { spawn, spawnSync } from "node:child_process";
+import { existsSync, readFileSync as rfs } from "node:fs";
 
-mock.module("@earendil-works/pi-tui", () => ({ truncateToWidth: (text: string) => text, Text: class { t = ""; setText(t: string) { this.t = t; } render() { return [this.t]; } } }));
-mock.module("@earendil-works/pi-coding-agent", () => ({ getAgentDir: () => process.env.PI_CODING_AGENT_DIR || `${process.env.HOME}/.pi/agent` }));
+vi.mock("@earendil-works/pi-tui", () => ({ truncateToWidth: (text: string) => text, Text: class { t = ""; setText(t: string) { this.t = t; } render() { return [this.t]; } } }));
+vi.mock("@earendil-works/pi-coding-agent", () => ({ getAgentDir: () => process.env.PI_CODING_AGENT_DIR || `${process.env.HOME}/.pi/agent` }));
 process.env.DIBS_HOME = (await import("node:fs")).mkdtempSync(`${(await import("node:os")).tmpdir()}/dibs-home-`);
 const { default: extension } = await import("../agents/pi/index.ts");
 
@@ -42,11 +44,11 @@ test("shows the above-editor task panel even when there are no tasks", async () 
 });
 
 test("manifest exposes the source and host packages remain peers", async () => {
- const pkg = await Bun.file(new URL("../agents/pi/package.json", import.meta.url)).json();
+ const pkg = JSON.parse(rfs(new URL("../agents/pi/package.json", import.meta.url), "utf8"));
  expect(pkg.pi.extensions).toEqual(["./index.ts"]);
  expect(pkg.keywords).toContain("pi-package");
  expect(Object.keys(pkg.dependencies).sort()).toEqual(["@dibs.ai/dibs"]);
- expect(await Bun.file(new URL("../agents/pi/index.ts", import.meta.url)).exists()).toBe(true);
+ expect(existsSync(new URL("../agents/pi/index.ts", import.meta.url))).toBe(true);
 });
 
 
@@ -96,7 +98,7 @@ test("file backend persists task operations without Dex", async () => {
  }
 });
 
-test.skipIf(!Bun.which("dex"))("Dex adapter syncs both ways", async () => {
+test.skipIf(spawnSync("which", ["dex"]).status !== 0)("Dex adapter syncs both ways", async () => {
  const { mkdtempSync, writeFileSync, rmSync } = await import("node:fs");
  const { tmpdir } = await import("node:os");
  const { join } = await import("node:path");
@@ -105,7 +107,7 @@ test.skipIf(!Bun.which("dex"))("Dex adapter syncs both ways", async () => {
  process.env.DIBS_HOME = join(dir, "home"); process.env.DIBS_FILE = join(dir, "tasks.jsonl");
  (await import("node:fs")).mkdirSync(process.env.DIBS_HOME, { recursive: true });
  writeFileSync(join(process.env.DIBS_HOME, "config.json"), JSON.stringify({ adapters: { dex: { sync: true } } }) + "\n");
- const dex = async (args: string[]) => { const p = Bun.spawn(["dex", "--storage-path", store, ...args], { stdout: "pipe", stderr: "pipe" }); const [stdout, stderr, code] = await Promise.all([new Response(p.stdout).text(), new Response(p.stderr).text(), p.exited]); return { stdout, stderr, code }; };
+ const dex = async (args: string[]) => { return await new Promise<{ stdout: string; stderr: string; code: number | null }>((res) => { const p = spawn("dex", ["--storage-path", store, ...args]); let stdout = "", stderr = ""; p.stdout.on("data", (d) => stdout += d); p.stderr.on("data", (d) => stderr += d); p.on("close", (code) => res({ stdout, stderr, code })); }); };
  try {
   let tool: any;
   extension({ registerTool: (t: any) => tool = shimTool(t), registerCommand() {}, registerShortcut() {}, on() {}, appendEntry() {}, exec: async (_cmd: string, args: string[]) => dex(args[0] === "--storage-path" ? args.slice(2) : args) } as any);
@@ -357,7 +359,7 @@ test("config.json is JSONC, keeps $schema on this version", async () => {
  const { readConfig, schemaUrl } = await import("../src/core/store.ts");
  const dir = mkdtempSync(join(tmpdir(), "dibs-jsonc-"));
 		const { name, version } = JSON.parse(readFileSync("package.json", "utf8"));
-		expect(schemaUrl).toEndWith(`/${name}@${version}/schema.json`);
+		expect(schemaUrl.endsWith(`/${name}@${version}/schema.json`)).toBe(true);
  // Comments, trailing commas and "//" inside strings; an old $schema is bumped without losing comments.
  writeFileSync(join(dir, "config.json"), '{\n  "$schema": "https://x/v0.0.1/schema.json", // old\n  /* note */ "file": "~/a//b.jsonl",\n}\n');
  expect(readConfig(dir)).toMatchObject({ file: "~/a//b.jsonl" });
@@ -453,7 +455,7 @@ test("Pi and CLI writing the same store concurrently lose no tasks", async () =>
   let tool: any;
   extension({ registerTool: (t: any) => tool = shimTool(t), registerCommand() {}, registerShortcut() {}, on() {}, appendEntry() {}, exec: async () => ({ code: 1, stdout: "", stderr: "" }) } as any);
   const ctx = { cwd: dir, hasUI: false, isProjectTrusted: () => true, ui: { notify() {} }, sessionManager: { getSessionId: () => "race" } };
-  const cli = Array.from({ length: 10 }, (_, i) => Bun.spawn(["bun", join(import.meta.dir, "../src/cli/index.ts"), "create", `cli${i}`], { cwd: dir, env: { ...process.env, DIBS_TRUST: "1" } }).exited);
+  const cli = Array.from({ length: 10 }, (_, i) => new Promise<number | null>((r) => spawn("nub", [join(import.meta.dirname, "../src/cli/index.ts"), "create", `cli${i}`], { cwd: dir, env: { ...process.env, DIBS_TRUST: "1" } }).on("close", r)));
   const pi = Array.from({ length: 10 }, (_, i) => tool.execute("c", { action: "create", name: `pi${i}` }, undefined, undefined, ctx));
   expect(await Promise.all(cli)).toEqual(Array(10).fill(0));
   await Promise.all(pi);

@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect, test } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -9,7 +9,7 @@ test("mcp server exposes the six task tools", async () => {
 	const dir = mkdtempSync(join(tmpdir(), "dibs-mcp-"));
 	const client = new Client({ name: "test", version: "0" });
 	await client.connect(new StdioClientTransport({
-		command: "bun", args: [join(import.meta.dir, "../src/cli/index.ts"), "mcp"], cwd: dir,
+		command: "nub", args: [join(import.meta.dirname, "../src/cli/index.ts"), "mcp"], cwd: dir,
 		env: { ...process.env as Record<string, string>, DIBS_HOME: dir, DIBS_TRUST: "1", DIBS_SCOPE: "project", DIBS_SESSION: "mcp-test" },
 	}));
 	try {

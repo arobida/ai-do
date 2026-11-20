@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect, test } from "vitest";
 import { panel, panelText } from "../src/core/panel.ts";
 
 const t = (id: string, extra: object = {}) => ({ id, name: `task ${id}`, completed: false, started_at: null, blocked_by: [], ...extra }) as any;

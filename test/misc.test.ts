@@ -1,4 +1,4 @@
-import { expect, mock, test } from "bun:test";
+import { expect, vi, test } from "vitest";
 import { mkdtempSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -88,7 +88,7 @@ test("takeover restores a lock a new holder took mid-rename and does not run fn"
 	const { renameSync, writeFileSync: write } = real; // captured: the mock replaces the live module
 	let armed = true;
 	// a new live holder replaces the dead lock just before the waiter's rename
-	mock.module("node:fs", () => ({ ...real, renameSync: (from: string, to: string) => { if (armed) { armed = false; write(lock, `${process.pid}:new`); } return renameSync(from, to); } }));
+	vi.doMock("node:fs", () => ({ ...real, renameSync: (from: string, to: string) => { if (armed) { armed = false; write(lock, `${process.pid}:new`); } return renameSync(from, to); } }));
 	const { withLock: locked } = await import("../src/core/util.ts" + "?restore");
 	let ran = false;
 	await expect(locked(f, () => { ran = true; }, 1)).rejects.toThrow("locked");

@@ -1,4 +1,5 @@
-import { expect, test } from "bun:test";
+import { spawnSync } from "node:child_process";
+import { expect, test } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -6,11 +7,11 @@ import { syncAll } from "../src/core/adapters/sync-all.ts";
 import { runFile } from "../src/core/tasks.ts";
 import { parseTodo, todoLine } from "../src/core/todo.ts";
 
-const cli = join(import.meta.dir, "../src/cli/index.ts");
+const cli = join(import.meta.dirname, "../src/cli/index.ts");
 const home = mkdtempSync(join(tmpdir(), "dibs-attr-"));
 const run = (cwd: string, env: Record<string, string>, ...args: string[]) => {
-	const p = Bun.spawnSync(["bun", cli, ...args], { cwd, env: { ...process.env, DIBS_HOME: home, DIBS_SESSION: "attr", DIBS_TRUST: "1", DIBS_SCOPE: "project", ...env } });
-	return p.stdout.toString();
+	const p = spawnSync("nub", [cli, ...args], { cwd, env: { ...process.env, DIBS_HOME: home, DIBS_SESSION: "attr", DIBS_TRUST: "1", DIBS_SCOPE: "project", ...env } });
+	return String(p.stdout);
 };
 
 test("created_by and human round trip through JSONL and todo.txt", async () => {

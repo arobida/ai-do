@@ -1,13 +1,14 @@
-import { expect, test } from "bun:test";
+import { expect, test } from "vitest";
+import { spawnSync, spawn } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const cli = join(import.meta.dir, "../src/cli/index.ts");
+const cli = join(import.meta.dirname, "../src/cli/index.ts");
 const home = mkdtempSync(join(tmpdir(), "dibs-home-"));
 const run = (cwd: string, ...args: string[]) => {
-	const p = Bun.spawnSync(["bun", cli, ...args], { cwd, env: { ...process.env, DIBS_HOME: home, DIBS_SESSION: "cli-test", DIBS_TRUST: "1", DIBS_SCOPE: "project" } });
-	return { out: p.stdout.toString(), err: p.stderr.toString(), code: p.exitCode };
+	const p = spawnSync("nub", [cli, ...args], { cwd, env: { ...process.env, DIBS_HOME: home, DIBS_SESSION: "cli-test", DIBS_TRUST: "1", DIBS_SCOPE: "project" } });
+	return { out: String(p.stdout), err: String(p.stderr), code: p.status };
 };
 
 test("create/list/start/edit/complete/export/import round trip", () => {
@@ -45,8 +46,8 @@ test("untrusted dir writes to the temp store, not cwd", () => {
 	const cwd = mkdtempSync(join(tmpdir(), "dibs-cli-"));
 	const env: Record<string, string | undefined> = { ...process.env, DIBS_HOME: home, DIBS_SESSION: "untrusted-test" };
 	delete env.DIBS_TRUST;
-	const p = Bun.spawnSync(["bun", cli, "create", "Temp task"], { cwd, env });
-	expect(p.exitCode).toBe(0);
+	const p = spawnSync("nub", [cli, "create", "Temp task"], { cwd, env });
+	expect(p.status).toBe(0);
 	expect(readdirSync(cwd)).toEqual([]);
 });
 
@@ -59,8 +60,8 @@ test("sync with no adapters enabled", () => {
 test("concurrent creates from separate processes all persist", async () => {
 	const cwd = mkdtempSync(join(tmpdir(), "dibs-cli-"));
 	const env = { ...process.env, DIBS_HOME: home, DIBS_SESSION: "cli-test", DIBS_TRUST: "1", DIBS_SCOPE: "project" };
-	const procs = Array.from({ length: 20 }, (_, i) => Bun.spawn(["bun", cli, "create", `t${i}`], { cwd, env }));
-	expect(await Promise.all(procs.map((p) => p.exited))).toEqual(Array(20).fill(0));
+	const procs = Array.from({ length: 20 }, (_, i) => new Promise<number | null>((r) => spawn("nub", [cli, "create", `t${i}`], { cwd, env }).on("close", r)));
+	expect(await Promise.all(procs)).toEqual(Array(20).fill(0));
 	const names = new Set(JSON.parse(run(cwd, "list", "--json").out).map((t: any) => t.name).filter((n: string) => /^t\d+$/.test(n)));
 	expect(names.size).toBe(20);
 }, 30000);

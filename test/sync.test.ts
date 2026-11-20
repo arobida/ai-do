@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect, test } from "vitest";
 import { mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { sync } from "../src/core/adapters/sync.ts";
@@ -109,8 +109,8 @@ test("claims: refused for another live claimer, force overrides, dead pid ignore
 		const get = async (id: string) => JSON.parse(await runFile(file, ["list"]) as string).find((t: any) => t.id === id);
 		await runFile(file, ["start", a, "--claim", mine]);
 		expect((await get(a)).claimed_by).toBe(mine);
-		expect(() => runFile(file, ["start", a, "--claim", other])).toThrow("claimed by");
-		expect(() => runFile(file, ["complete", a, "--claim", other])).toThrow("claimed by");
+		await expect(runFile(file, ["start", a, "--claim", other])).rejects.toThrow("claimed by");
+		await expect(runFile(file, ["complete", a, "--claim", other])).rejects.toThrow("claimed by");
 		await runFile(file, ["start", a, "--claim", other, "--force"]);
 		expect((await get(a)).claimed_by).toBe(other);
 		await runFile(file, ["start", b, "--claim", "s3:2147483646"]);
@@ -151,10 +151,10 @@ test("blocked_by: ready query, claims, self/cycle rejected, multiple, clear", as
 		await runFile(file, ["start", b, "--claim", `s1:${process.pid}`]);
 		expect(await ready()).toEqual([]);
 		const c = await mk("c"), d = await mk("d");
-		expect(() => runFile(file, ["edit", c, "--blocked-by", c])).toThrow("cycle");
+		await expect(runFile(file, ["edit", c, "--blocked-by", c])).rejects.toThrow("cycle");
 		await runFile(file, ["edit", c, "--blocked-by", d]);
-		expect(() => runFile(file, ["edit", d, "--blocked-by", c])).toThrow("cycle");
-		expect(() => runFile(file, ["edit", d, "--blocked-by", "nope"])).toThrow("not found");
+		await expect(runFile(file, ["edit", d, "--blocked-by", c])).rejects.toThrow("cycle");
+		await expect(runFile(file, ["edit", d, "--blocked-by", "nope"])).rejects.toThrow("not found");
 		const e = await mk("e", "--blocked-by", `${c},${d}`);
 		expect((await list()).find((t: any) => t.id === e).blocked_by).toEqual([c, d]);
 		expect(await ready()).toEqual([d]);
