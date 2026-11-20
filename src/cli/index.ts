@@ -1,8 +1,9 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
  * The `dibs` command-line interface. Run `dibs --help` for usage.
  * @module
  */
+import { execFile } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
@@ -33,11 +34,11 @@ const ctx: Ctx = {
 	cwd,
 	trusted: () => process.env.DIBS_TRUST === "1" || existsSync(`${cwd}/.dibs`) || existsSync(`${cwd}/.agents/dibs`),
 	sessionId: () => process.env.DIBS_SESSION ?? String(process.ppid),
-	exec: async (cmd, args, opts) => {
-		const p = Bun.spawn([cmd, ...args], { cwd: opts?.cwd ?? cwd, stdout: "pipe", stderr: "pipe", signal: opts?.signal });
-		const [stdout, stderr, code] = await Promise.all([new Response(p.stdout).text(), new Response(p.stderr).text(), p.exited]);
-		return { stdout, stderr, code };
-	},
+	exec: (cmd, args, opts) => new Promise((ok) => execFile(cmd, args, { cwd: opts?.cwd ?? cwd, signal: opts?.signal, maxBuffer: 64 * 1024 * 1024 }, (err, stdout, stderr) => {
+		if (!err) ok({ stdout, stderr, code: 0 });
+		else if (typeof err.code === "string") ok({ stdout: "", stderr: err.message, code: 127 }); // could not start (ENOENT, ...)
+		else ok({ stdout, stderr, code: err.code ?? 1 });
+	})),
 };
 
 try {
